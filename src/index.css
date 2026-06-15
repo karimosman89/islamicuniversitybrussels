@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Amiri:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Cairo", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Amiri", serif;
+  
+  --color-primary: #1e3a8a; /* Deep Blue */
+  --color-secondary: #0f766e; /* Teal */
+  --color-accent: #d97706; /* Amber/Gold */
+}
+
+@layer base {
+  html {
+    direction: rtl;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply font-sans text-gray-900 bg-gray-50;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}

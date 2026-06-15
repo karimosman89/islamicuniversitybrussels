@@ -1,0 +1,192 @@
+{
+  "ar": [
+    {
+      "id": "sv1",
+      "name": "أنس العتيبي",
+      "country": "المملكة العربية السعودية",
+      "flag": "🇸🇦",
+      "program": "ماجستير في الشريعة وأصول الفقه",
+      "quote": "لقد وفّرت لي الجامعة البيئة الأكاديمية المثالية التي تجمع بين الأصالة الشرعية والمرونة التكنولوجية. مكنني نظام التعليم عن بُعد من مواصلة دراستي بامتياز.",
+      "avatar": "AO",
+      "date": "خريج دفعة ٢٠٢٥",
+      "articleTitle": "التوازن المثالي بين التحصيل الشرعي والعمل اليومي",
+      "articleBody": "كطالب يعمل دواماً كاملاً، كنت أخشى القيود الإدارية الصارمة، لكن مرونة الجدول الأكاديمي والمتابعة المستمرة عبر فرع أوروبا أزالا كل العقبات. المحتوى التعليمي ثري ويمزج المعرفة الفقهية بالواقع المعاصر."
+    },
+    {
+      "id": "sv2",
+      "name": "يوسف كايا",
+      "country": "تركيا",
+      "flag": "🇹🇷",
+      "program": "بكالوريوس في الاقتصاد والمصرفية الإسلامية",
+      "quote": "المنهج الدراسي شامل ومُعد بمعايير علمية دقيقة. استطعت اكتساب مهارات حقيقية في المالية والمصرفية تتوافق مع المتطلبات المعاصرة.",
+      "avatar": "YK",
+      "date": "طالب بالسنة لثالثة",
+      "articleTitle": "لماذا اخترت تخصص الاقتصاد الإسلامي في بروكسل؟",
+      "articleBody": "إن فهم الاقتصاد الإسلامي يحتاج لمنهج متجدد. يربط أساتذة الجامعة المفاهيم الفقهية التاريخية بالأدوات الحديثة للتمويل الاستثماري، مما يؤهلني للمنافسة بقوة في الأسواق المالية المحلية والإقليمية."
+    },
+    {
+      "id": "sv3",
+      "name": "مريم رفاعي",
+      "country": "إيطاليا",
+      "flag": "🇮🇹",
+      "program": "دكتوراه في التربية الإسلامية والمناهج",
+      "quote": "كباحثة مقيمة في أوروبا، تم تسهيل جميع معاملاتي الأكاديمية والمناقشة المحلية لرسالتي من خلال الممثل المعتمد بإيطاليا والدعم الرائع.",
+      "avatar": "MR",
+      "date": "طالبة أطروحة الدكتوراه",
+      "articleTitle": "البحث التربوي الأكاديمي في البيئات الغربية",
+      "articleBody": "تركز أطروحتي على تطوير فلسفة التعليم الإسلامي للأجيال واليافعين في المجتمعات الغربية. حصلت على إشراف دقيق وتوجيه علمي متقدم ومصادر رقمية شاملة وفرت عليّ عناء السفر والدراسة التقليدية."
+    }
+  ],
+  "en": [
+    {
+      "id": "sv1",
+      "name": "Anas Al-Otaibi",
+      "country": "Saudi Arabia",
+      "flag": "🇸🇦",
+      "program": "Master in Sharia & Fundamentals of Jurisprudence",
+      "quote": "The university provided me with the ideal academic environment that combines traditional Sharia roots with dynamic technological flexibility.",
+      "avatar": "AO",
+      "date": "Graduation Class of 2025",
+      "articleTitle": "Balancing Sharia Academic Studies with Busy Professional Work",
+      "articleBody": "As a full-time professional, I feared rigorous rigid schedules. However, Brussels Europe Branch offered unparalleled flexibility, modern learning portal access, and exceptional local coordinator support."
+    },
+    {
+      "id": "sv2",
+      "name": "Yousef Kaya",
+      "country": "Turkey",
+      "flag": "🇹🇷",
+      "program": "Bachelor in Islamic Economics & Banking",
+      "quote": "The curriculum is rigorous, up-to-date, and meticulously designed. I gained deep valuable skills in ethical finance and banking structures.",
+      "avatar": "YK",
+      "date": "Year 3 Student",
+      "articleTitle": "Why I Chose Islamic Economics at IUB Brussels",
+      "articleBody": "Islamic banking is blooming across European markets. The professors link core jurisprudence of contracts with contemporary fintech instruments, perfectly preparing us for modern financial roles."
+    },
+    {
+      "id": "sv3",
+      "name": "Maryam Rifaai",
+      "country": "Italy",
+      "flag": "🇮🇹",
+      "program": "PhD in Islamic Education & Curricula",
+      "quote": "As an educational researcher residing in Europe, conducting doctoral studies and defends locally with official Italian coordination was incredible.",
+      "avatar": "MR",
+      "date": "PhD Thesis Candidate",
+      "articleTitle": "Fostering Educational Research in Western Environments",
+      "articleBody": "My PhD focuses on Islamic identity pedagogy in western communities. The refined advising, wealth of online library books, and strict academic integrity benchmarks enabled me to thrive."
+    }
+  ],
+  "it": [
+    {
+      "id": "sv1",
+      "name": "Anas Al-Otaibi",
+      "country": "Arabia Saudita",
+      "flag": "🇸🇦",
+      "program": "Master in Sharia e Giurisprudenza",
+      "quote": "L'università mi ha fornito l'ambiente accademico ideale che unisce radici tradizionali e flessibilità tecnologica dinamica.",
+      "avatar": "AO",
+      "date": "Classe di Laurea 2025",
+      "articleTitle": "Gestire dello Studio Accademico con gli Impegni di Lavoro Quotidiani",
+      "articleBody": "Come professionista a tempo pieno, temevo gli orari rigidi. IUB ha saputo offrire una flessibilità eccezionale, un'eccellente piattaforma e un supporto costante dei rappresentanti."
+    },
+    {
+      "id": "sv2",
+      "name": "Yousef Kaya",
+      "country": "Turchia",
+      "flag": "🇹🇷",
+      "program": "Laurea Triennale in Economia e Banche Islamiche",
+      "quote": "Il curriculum è completo e preparato con standard scientifici accurati. Ho acquisito reali capacità nella finanza etica strutturata.",
+      "avatar": "YK",
+      "date": "Studente del 3° Anno",
+      "articleTitle": "Perché ho scelto la facoltà di Economia Islamica a Bruxelles",
+      "articleBody": "Le banche islamiche ed etiche si stanno espandendo. I professori collegano i contratti di fikh storico con gli strumenti moderni, dotandoci di competenze cruciali per il mercato."
+    },
+    {
+      "id": "sv3",
+      "name": "Maryam Rifaai",
+      "country": "Italia",
+      "flag": "🇮🇹",
+      "program": "Dottorato in Educazione Islamica e Programmi",
+      "quote": "Come ricercatrice residente in Italia, il coordinamento delle pratiche e la discussione locale della tesi sono stati eccezionali.",
+      "avatar": "MR",
+      "date": "Candidata al Dottorato",
+      "articleTitle": "Promuovere la Ricerca Pedagogica nei Contesti Occidentali",
+      "articleBody": "La mia ricerca mira a sviluppare la pedagogia educativa per i giovani nelle società plurali. IUB mi ha affiancato con ottimi supervisori e risorse bibliografiche."
+    }
+  ],
+  "fr": [
+    {
+      "id": "sv1",
+      "name": "Anas Al-Otaibi",
+      "country": "Arabie Saoudite",
+      "flag": "🇸🇦",
+      "program": "Master en Sharia & Fondements du Droit",
+      "quote": "L'université m'a fourni l'environnement académique idéal combinant racines traditionnelles et flexibilité technologique.",
+      "avatar": "AO",
+      "date": "Promotion 2025",
+      "articleTitle": "Concilier les Études Académiques avec l'Activité Professionnelle",
+      "articleBody": "Travaillant à temps plein, je craignais les contraintes. La flexibilité de notre plateforme européenne, le portail moderne et le soutien réactif de l'administration ont levé tous les doutes."
+    },
+    {
+      "id": "sv2",
+      "name": "Yousef Kaya",
+      "country": "Turquie",
+      "flag": "🇹🇷",
+      "program": "Licence en Économie et Finance Islamique",
+      "quote": "Le programme d'études est complet et rigoureux. J'ai acquis de réelles compétences en finance éthique conforme aux régulations contemporaines.",
+      "avatar": "YK",
+      "date": "Étudiant en 3e Année",
+      "articleTitle": "Pourquoi choisir la finance islamique à IUB Bruxelles",
+      "articleBody": "Le secteur bancaire éthique progresse rapidement. Les cours allient parfaitement les concepts juridiques de base avec les mathématiques financières modernes pour former de futurs leaders."
+    },
+    {
+      "id": "sv3",
+      "name": "Maryam Rifaai",
+      "country": "Italie",
+      "flag": "🇮🇹",
+      "program": "Doctorat en Didactique & Éducation Islamique",
+      "quote": "En tant que chercheuse résidant en Italie, toute la coordination administrative et la soutenance locale ont été extrêmement fluides.",
+      "avatar": "MR",
+      "date": "Doctorante en Thèse",
+      "articleTitle": "Développer la Recherche en Éducation dans un Contexte Occidental",
+      "articleBody": "Ma thèse explore les modèles de pédagogie auprès des jeunes musulmans en Europe. Le suivi minutieux, l'accès à la bibliothèque virtuelle et la rigueur académique m'ont permis d'aller au bout."
+    }
+  ],
+  "de": [
+    {
+      "id": "sv1",
+      "name": "Anas Al-Otaibi",
+      "country": "Saudi-Arabien",
+      "flag": "🇸🇦",
+      "program": "Master in Scharia-Recht & Jurisprudenz",
+      "quote": "Die Universität bot mir ein erstklassiges akademisches Umfeld, das klassischen Scharia-Lehren mit flexibler Digitaltechnik vereint.",
+      "avatar": "AO",
+      "date": "Abschlussjahrgang 2025",
+      "articleTitle": "Berufstätigkeit und akademisches Studium im Einklang",
+      "articleBody": "Als Vollzeit-Berufstätiger hatte ich Angst vor starren Fristen. Doch das flexible Online-Portal der Europa-Zweigstelle und die Betreuung über WhatsApp machten alles erstaunlich einfach."
+    },
+    {
+      "id": "sv2",
+      "name": "Yousef Kaya",
+      "country": "Türkei",
+      "flag": "🇹🇷",
+      "program": "Bachelor in Islamischer Ökonomie & Banken",
+      "quote": "Das Curriculum ist anspruchsvoll und präzise aufgebaut. Ich konnte wertvolle Kenntnisse im ethischen Finanzwesen erwerben.",
+      "avatar": "YK",
+      "date": "Student im 3. Jahr",
+      "articleTitle": "Faszination islamisches Finanzwesen in Brüssel studieren",
+      "articleBody": "Die Nachfrage nach zinslosen ethischen Geldanlagen wächst auch in Europa. Die Professoren verknüpfen historische Rechtstheoreme mit Fintech-Strukturen von heute."
+    },
+    {
+      "id": "sv3",
+      "name": "Maryam Rifaai",
+      "country": "Italien",
+      "flag": "🇮🇹",
+      "program": "Promotion in Islamischer Pädagogik & Lehrplänen",
+      "quote": "Als Doktorandin in Italien war die Betreuung und lokale Verteidigung dank unseres Koordinators erstklassig organisiert.",
+      "avatar": "MR",
+      "date": "Doktorandin (Dissertation)",
+      "articleTitle": "Pädagogische Forschung im westlichen Kontext voranbringen",
+      "articleBody": "Meine Dissertation untersucht neue Ansätze zur Wertebildung in multikulturellen Gesellschaften. Die Online-Bibliothek und das persönliche Mentoring waren absolut entscheidend für meinen Erfolg."
+    }
+  ]
+}
