@@ -33,8 +33,10 @@ import {
   Moon,
   Eye,
   Layers,
-  MapPin
+  MapPin,
+  Download
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 
 import { MapHoverTooltip } from './components/MapHoverTooltip';
@@ -63,6 +65,10 @@ import { StudentActivities } from './components/StudentActivities';
 import { AcademicEvents } from './components/AcademicEvents';
 import { DigitalLibrary } from './components/DigitalLibrary';
 import { UniversityFaqs } from './components/UniversityFaqs';
+import { StudentQuickLinks } from './components/StudentQuickLinks';
+import { AcademicRoadmap } from './components/AcademicRoadmap';
+import { AcademicPerformanceRadar } from './components/AcademicPerformanceRadar';
+import { StudentDashboard } from './components/StudentDashboard';
 
 const LANGUAGES = [
   { code: 'ar', label: 'العربية', flag: '🇸🇦' },
@@ -142,6 +148,290 @@ export default function App() {
 
   const t = TRANSLATIONS[currentLang] || TRANSLATIONS.ar;
   const isRtl = t.dir === 'rtl';
+
+  const handleDownloadTranscript = () => {
+    try {
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+      });
+
+      // Colors
+      const primaryColor = [11, 77, 55]; // Deep emerald green
+      const accentColor = [194, 120, 3]; // Amber
+      const textColor = [30, 41, 59]; // Slate 800
+      const mutedTextColor = [100, 116, 139]; // Slate 500
+      const borderLineColor = [226, 232, 240]; // Slate 200
+
+      // Outer border box
+      doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setLineWidth(1);
+      doc.rect(5, 5, 200, 287); // outer frame
+      
+      doc.setDrawColor(borderLineColor[0], borderLineColor[1], borderLineColor[2]);
+      doc.setLineWidth(0.2);
+      doc.rect(7, 7, 196, 283); // inner framing line
+
+      // 1. Header Section
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.rect(7, 7, 196, 32, "F");
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("ISLAMIC UNIVERSITY OF BRUSSELS", 15, 17);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text("UNIVERSITE ISLAMIQUE DE BRUXELLES (IUB)", 15, 22);
+      doc.setFontSize(9);
+      doc.text("EUROPEAN UNION BRANCH OFFICE - ACCREDITED HIGHER ACADEMIC BOARD", 15, 26);
+      
+      // Stamp Badge Box
+      doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+      doc.rect(160, 12, 32, 20, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.text("OFFICIAL RECORD", 162, 17);
+      doc.setFontSize(7);
+      doc.text("BRUSSELS BRANCH", 163, 22);
+      doc.text("E-LEARNING PORTAL", 162, 26);
+
+      // Section: Document Title
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text("OFFICIAL ACADEMIC TRANSCRIPT & STATUS REPORT", 15, 50);
+
+      // Horizontal separator
+      doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setLineWidth(0.8);
+      doc.line(15, 53, 195, 53);
+
+      // 2. Student Info Grid
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+
+      // Column 1
+      doc.text("STUDENT NAME:", 15, 62);
+      doc.setFont("helvetica", "normal");
+      doc.text("Arkan Marschall (Verified Candidate)", 48, 62);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("STUDENT ID:", 15, 68);
+      doc.setFont("helvetica", "normal");
+      doc.setFont("courier", "bold");
+      doc.text("EU_BWA_2026_880", 48, 68);
+      doc.setFont("helvetica", "normal");
+
+      doc.setFont("helvetica", "bold");
+      doc.text("ACADEMIC LEVEL:", 15, 74);
+      doc.setFont("helvetica", "normal");
+      doc.text("Bachelor of Islamic Studies & Sharia Law", 48, 74);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("FACULTY:", 15, 80);
+      doc.setFont("helvetica", "normal");
+      doc.text("College of Islamic Jurisprudence & Pedagogy", 48, 80);
+
+      // Column 2
+      doc.setFont("helvetica", "bold");
+      doc.text("DATE OF ISSUE:", 120, 62);
+      doc.setFont("helvetica", "normal");
+      doc.text("June 15, 2026", 155, 62);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("ACTIVE SEMESTER:", 120, 68);
+      doc.setFont("helvetica", "normal");
+      doc.text("Spring S2 (2026)", 155, 68);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("MATRICULATION:", 120, 74);
+      doc.setFont("helvetica", "normal");
+      doc.text("ACTIVE & FULLY AUDITED", 155, 74);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("TUITION STATUS:", 120, 80);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(16, 124, 65); // Green
+      doc.text("FULLY PAID (100% SECURE)", 155, 80);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+
+      // Separator
+      doc.setDrawColor(borderLineColor[0], borderLineColor[1], borderLineColor[2]);
+      doc.setLineWidth(0.3);
+      doc.line(15, 86, 195, 86);
+
+      // 3. Transcript Table Title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.text("CURRICULUM ENROLLMENT & EXAM PERFORMANCES", 15, 94);
+
+      // Table Header Board
+      const tableTopY = 98;
+      doc.setFillColor(241, 245, 249); // slate-100 bg
+      doc.rect(15, tableTopY, 180, 8, "F");
+      
+      doc.setTextColor(mutedTextColor[0], mutedTextColor[1], mutedTextColor[2]);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text("COURSE CODE", 18, tableTopY + 5.5);
+      doc.text("COURSE STUDY SUBJECT", 45, tableTopY + 5.5);
+      doc.text("CREDITS", 130, tableTopY + 5.5);
+      doc.text("GRADE RANGE", 150, tableTopY + 5.5);
+      doc.text("ACCREDITATION", 172, tableTopY + 5.5);
+
+      // Course List rows
+      const courses = [
+        { code: "IUB-FIQ-101", title: "Modern Islamic Jurisprudence & Fiqh Manuals", credits: "4.0 ECTS", grade: "A (95%)", status: "PASSED" },
+        { code: "IUB-SHR-202", title: "Principles of Sharia & Legal Philosophy Texts", credits: "4.0 ECTS", grade: "A- (91%)", status: "PASSED" },
+        { code: "IUB-FIN-305", title: "Contemporary Financial Transactions & Sharia Law", credits: "3.0 ECTS", grade: "A (97%)", status: "PASSED" },
+        { code: "IUB-LAW-112", title: "Comparative Constitutional Law of Middle East", credits: "3.0 ECTS", grade: "B+ (88%)", status: "PASSED" },
+        { code: "IUB-RES-401", title: "Advanced Scientific Research Methodology", credits: "3.0 ECTS", grade: "A (94%)", status: "PASSED" },
+        { code: "IUB-SEM-450", title: "Graduate Thesis Proposal Draft & Seminar", credits: "2.0 ECTS", grade: "A (96%)", status: "PASSED" }
+      ];
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+
+      let currentY = tableTopY + 8;
+      courses.forEach((c, idx) => {
+        // Alternate subtle background colors for row readability
+        if (idx % 2 === 1) {
+          doc.setFillColor(248, 250, 252); // slate-50
+          doc.rect(15, currentY, 180, 8, "F");
+        }
+        
+        doc.setFont("courier", "bold");
+        doc.text(c.code, 18, currentY + 5.5);
+        doc.setFont("helvetica", "normal");
+        doc.text(c.title, 45, currentY + 5.5);
+        doc.text(c.credits, 130, currentY + 5.5);
+        
+        doc.setFont("helvetica", "bold");
+        doc.text(c.grade, 150, currentY + 5.5);
+        doc.setTextColor(16, 124, 65); // Green for PASSED status
+        doc.text(c.status, 172, currentY + 5.5);
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]); // reset text color
+        doc.setFont("helvetica", "normal");
+
+        doc.setDrawColor(241, 245, 249);
+        doc.setLineWidth(0.25);
+        doc.line(15, currentY + 8, 195, currentY + 8);
+        
+        currentY += 8;
+      });
+
+      // 4. Summarized Metrics card section
+      currentY += 6;
+      doc.setFillColor(248, 250, 252); // Slate-50 container
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.4);
+      doc.rect(15, currentY, 180, 26, "FD");
+
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text("TRANSCRIPT CUMULATIVE METRICS SUMMARY", 20, currentY + 6);
+
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.setFontSize(8);
+
+      doc.text("COMPLETED PORTION:", 20, currentY + 13);
+      doc.setFont("helvetica", "normal");
+      doc.text("85% Curricular Path", 55, currentY + 13);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("EARNED CREDITS:", 20, currentY + 19);
+      doc.setFont("helvetica", "normal");
+      doc.text("19.0 ECTS Fully Verified", 55, currentY + 19);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("CUMULATIVE GPA:", 105, currentY + 13);
+      doc.setFont("helvetica", "normal");
+      doc.setFont("courier", "bold");
+      doc.setFontSize(9);
+      doc.text("3.92 / 4.00 (EXCELLENT)", 135, currentY + 13);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("ACADEMIC STANDING:", 105, currentY + 19);
+      doc.setFont("helvetica", "normal");
+      doc.text("SUMMA CUM LAUDE ELIGIBILITY", 135, currentY + 19);
+
+      // 5. Verification Check list & seals
+      currentY += 34;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.text("OFFICIAL SECURE VERIFICATION DETAILS", 15, currentY);
+
+      doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setLineWidth(0.4);
+      doc.line(15, currentY + 2, 195, currentY + 2);
+
+      currentY += 8;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(mutedTextColor[0], mutedTextColor[1], mutedTextColor[2]);
+      
+      const verificationText = [
+        "1. This document constitutes a certified digital study record retrieved dynamically from the Al-Azhar EU academic registrar database in Brussels, Belgium.",
+        "2. Authentic paper transcripts and diplomas will bear the raised dry seal of University Executive Administration and official consular approvals.",
+        "3. Any alteration or tampering voids this copy instantly. Online status check remains available for verification with your custom registration credentials."
+      ];
+      verificationText.forEach((t, i) => {
+        doc.text(t, 15, currentY + i * 4);
+      });
+
+      // 6. Signatures block
+      currentY += 24;
+      
+      // Dean signature lines
+      doc.setDrawColor(203, 213, 225); // slate-300
+      doc.setLineWidth(0.4);
+      doc.line(20, currentY, 75, currentY);
+      doc.line(135, currentY, 190, currentY);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.text("PROF. DR. ABDUL HAFID ASSAMIL", 20, currentY + 4);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.text("Dean of Al-Azhar Academic Branch, Brussels", 20, currentY + 7);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.text("OFFICIAL REGISTRAR HUB OFFICE", 135, currentY + 4);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.text("Brussels Higher Education Seal Registry", 135, currentY + 7);
+
+      // Simulated security QR Hash block
+      currentY += 15;
+      doc.setFillColor(241, 245, 249);
+      doc.rect(15, currentY, 180, 10, "F");
+      
+      doc.setFont("courier", "bold");
+      doc.setFontSize(6.5);
+      doc.setTextColor(mutedTextColor[0], mutedTextColor[1], mutedTextColor[2]);
+      doc.text("SECURE_DIGITAL_BLOCKHASH: 0x9AF8828D2B99EFA67C82AAEE812F9E828BCBD82", 20, currentY + 6);
+
+      // Save PDF trigger
+      doc.save("IUB_Official_Academic_Transcript_EU_BWA_2026_880.pdf");
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      alert("Failed to download PDF transcript. Please check browser console for errors.");
+    }
+  };
 
   const studentVoicesLabel = {
     ar: "تجارب الطلاب",
@@ -764,7 +1054,45 @@ export default function App() {
                             <p className="text-md font-extrabold text-blue-400 font-mono mt-1">85%</p>
                           </div>
                         </div>
+
+                        {/* Interactive Certified PDF Transcript Download Button */}
+                        <div className={`mt-5 pt-4.5 border-t border-slate-900/60 flex flex-col sm:flex-row items-center justify-between gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                          <div className={textAlignment}>
+                            <p className="text-[11px] font-bold text-white">
+                              {currentLang === 'ar' ? '✨ وثيقة أكاديمية رسمية جاهزة' : '✨ Official Academic Credential Ready'}
+                            </p>
+                            <p className="text-[10px] text-slate-400 mt-0.5 leading-normal max-w-sm">
+                              {currentLang === 'ar' 
+                                ? 'سجل الدرجات هذا يخضع تلقائياً لنظام تحويل الساعات التراكمية الأوروبي (ECTS) ومطابق مع لائحة بروكسل.'
+                                : 'This transcript is secure, fully synced to the European Credit Transfer System (ECTS) and stamped in Brussels.'}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleDownloadTranscript}
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white transition-all duration-200 text-xs font-black shadow-lg shadow-emerald-950/35 active:scale-95 cursor-pointer border border-emerald-500/25 shrink-0"
+                          >
+                            <Download className="w-4 h-4 text-emerald-100" />
+                            <span>
+                              {currentLang === 'ar' 
+                                ? 'تحميل كشف الدرجات المصدّق (PDF)' 
+                                : currentLang === 'it'
+                                ? 'Scarica Certificato Accademico (PDF)'
+                                : currentLang === 'fr'
+                                ? 'Télécharger le Relevé de Notes (PDF)'
+                                : currentLang === 'de'
+                                ? 'Notenspiegel herunterladen (PDF)'
+                                : 'Download Verified Transcript (PDF)'}
+                            </span>
+                          </button>
+                        </div>
                       </div>
+
+                      {/* Academic Performance Radar Chart */}
+                      <AcademicPerformanceRadar currentLang={currentLang} isRtl={isRtl} />
+
+                      {/* Student Dashboard summary / courses / tasks */}
+                      <StudentDashboard currentLang={currentLang} isRtl={isRtl} />
 
                       {/* Portal System Alert */}
                       <p className={`p-3 bg-blue-950/40 border border-blue-900/40 rounded-xl text-[10px] sm:text-xs text-blue-300 leading-relaxed font-semibold ${textAlignment}`}>
@@ -899,6 +1227,8 @@ export default function App() {
       </section>
 
       <DigitalLibrary currentLang={currentLang} />
+
+      <AcademicRoadmap currentLang={currentLang} />
 
       {/* Pricing Section */}
       <section id="pricing" className="py-20 bg-white">
@@ -2073,6 +2403,9 @@ export default function App() {
 
       {/* Bilingual AI University Advisor Chatbot Widget */}
       <UniversityChatbot currentLang={currentLang} />
+
+      {/* Floating Student Quick Links Sidebar and Modals */}
+      <StudentQuickLinks currentLang={currentLang} />
 
       {/* Syllabus Preview Modal Component Backdrop Panel */}
       <SyllabusPreviewModal 

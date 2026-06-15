@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { DocumentScanner } from "./DocumentScanner";
+import { AdmissionStatusTrackerModal } from "./AdmissionStatusTrackerModal";
 import { 
   User, 
   Mail, 
@@ -20,7 +22,10 @@ import {
   Trash2,
   RefreshCw,
   SearchCode,
-  Sparkles
+  Sparkles,
+  Award,
+  Globe,
+  Heart
 } from "lucide-react";
 
 interface AdmissionFormProps {
@@ -45,6 +50,8 @@ interface ApplicationData {
   calcTuition: number;
   calcDiscount: number;
   calcTotal: number;
+  scholarshipType?: "none" | "merit" | "regional" | "need";
+  calcScholarshipDiscount?: number;
 }
 
 const PROGRAM_FEES = {
@@ -96,21 +103,49 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
   const [submissions, setSubmissions] = useState<ApplicationData[]>([]);
   const [loadingApp, setLoadingApp] = useState(false);
 
-  // Stepped Form State
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    country: "",
-    degree: "bachelor" as "bachelor" | "master" | "phd",
-    collegeIdx: 0,
-    specialtyIdx: 0,
-    isMemorizer: false,
-    extraPremiumAdvisor: false,
-    notes: "",
-    uploadedFiles: [] as { name: string; size: string; type: string }[]
+  // Stepped Form State loaded from localStorage
+  const [step, setStep] = useState<number>(() => {
+    try {
+      const savedStep = localStorage.getItem("iub_admission_form_step_autosave");
+      if (savedStep) {
+        const parsed = parseInt(savedStep, 10);
+        if (parsed >= 1 && parsed <= 4) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn("Error reading step from localStorage:", e);
+    }
+    return 1;
   });
+
+  const [formData, setFormData] = useState(() => {
+    const defaultData = {
+      fullName: "",
+      email: "",
+      phone: "",
+      country: "",
+      degree: "bachelor" as "bachelor" | "master" | "phd",
+      collegeIdx: 0,
+      specialtyIdx: 0,
+      isMemorizer: false,
+      extraPremiumAdvisor: false,
+      notes: "",
+      uploadedFiles: [] as { name: string; size: string; type: string }[],
+      scholarshipType: "none" as "none" | "merit" | "regional" | "need"
+    };
+    try {
+      const savedData = localStorage.getItem("iub_admission_form_autosave");
+      if (savedData) {
+        return { ...defaultData, ...JSON.parse(savedData) };
+      }
+    } catch (e) {
+      console.warn("Error reading formData from localStorage:", e);
+    }
+    return defaultData;
+  });
+
+  const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
 
   const [captchaAnswer, setCaptchaAnswer] = useState("");
   const [captchaValues, setCaptchaValues] = useState({ num1: 3, num2: 4 });
@@ -135,7 +170,40 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
   useEffect(() => {
     generateCaptcha();
     fetchApplications();
+    
+    try {
+      const savedData = localStorage.getItem("iub_admission_form_autosave");
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        // Check if there are some user input fields filled
+        if (parsed.fullName || parsed.email || parsed.phone || parsed.country || parsed.notes || (parsed.uploadedFiles && parsed.uploadedFiles.length > 0)) {
+          setHasRestoredDraft(true);
+        }
+      }
+    } catch (e) {
+      console.warn("Error reading auto-saved data on mount:", e);
+    }
   }, []);
+
+  // Write formData to local storage automatically whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem("iub_admission_form_autosave", JSON.stringify(formData));
+    } catch (e) {
+      console.warn("Failed to write form autosave to localStorage:", e);
+    }
+  }, [formData]);
+
+  // Write active step to local storage automatically whenever it changes (only steps 1-4)
+  useEffect(() => {
+    try {
+      if (step >= 1 && step <= 4) {
+        localStorage.setItem("iub_admission_form_step_autosave", String(step));
+      }
+    } catch (e) {
+      console.warn("Failed to write step autosave to localStorage:", e);
+    }
+  }, [step]);
 
   const generateCaptcha = () => {
     const num1 = Math.floor(Math.random() * 8) + 2;
@@ -205,18 +273,29 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
   };
 
   // Tuition Calculation
-  const getCalculatedFees = (deg: "bachelor" | "master" | "phd", memo: boolean, advisor: boolean) => {
+  const getCalculatedFees = (deg: "bachelor" | "master" | "phd", memo: boolean, advisor: boolean, scholarshipType?: string) => {
     const feeObj = PROGRAM_FEES[deg] || PROGRAM_FEES.bachelor;
     const base = feeObj.base;
-    const discount = memo ? base * feeObj.memoDiscount : 0;
-    const feeAfterDiscount = base - discount;
+    const memoDiscount = memo ? base * feeObj.memoDiscount : 0;
+    
+    let scholarshipDiscount = 0;
+    if (scholarshipType === "merit") {
+      scholarshipDiscount = base * 0.30;
+    } else if (scholarshipType === "regional") {
+      scholarshipDiscount = base * 0.25;
+    } else if (scholarshipType === "need") {
+      scholarshipDiscount = base * 0.40;
+    }
+
+    const totalDiscount = memoDiscount + scholarshipDiscount;
+    const feeAfterDiscount = Math.max(0, base - totalDiscount);
     const extras = advisor ? 100 : 0;
     const total = feeAfterDiscount + extras;
 
-    return { base, discount, extras, total };
+    return { base, discount: memoDiscount, scholarshipDiscount, extras, total };
   };
 
-  const feeStatus = getCalculatedFees(formData.degree, formData.isMemorizer, formData.extraPremiumAdvisor);
+  const feeStatus = getCalculatedFees(formData.degree, formData.isMemorizer, formData.extraPremiumAdvisor, formData.scholarshipType);
 
   // File drag & drop simulator
   const [dragActive, setDragActive] = useState(false);
@@ -294,6 +373,17 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
         newErrors.files = isRtl 
           ? "يرجى إرفاق وثيقة الهوية والمؤهلات الأكاديمية للمراجعة المبدئية" 
           : "Please attach at least one document (Identity or previous certificate)";
+      } else if (formData.scholarshipType && formData.scholarshipType !== "none" && formData.uploadedFiles.length < 2) {
+        const requiredDocLabel = 
+          formData.scholarshipType === "merit" 
+            ? (isRtl ? "كشف درجات متميز (GPA >= 3.7) أو خطاب توصية أكاديمي" : "Academic transcript with GPA >= 3.7 or a recommendation letter")
+            : formData.scholarshipType === "regional"
+            ? (isRtl ? "إثبات إقليمي كفاتورة الإقامة أو مستند محلي" : "proof of residency regional documentation")
+            : (isRtl ? "كشف الدخل السنوي أو تعهد مكتوب بمستوى الملاءة والصعوبة المالية" : "annual income specification or written hardship documentation proof");
+            
+        newErrors.files = isRtl
+          ? `يرجى إرفاق مستند تبرير المنحة بالإضافة للهوية (نحتاج ملفين على الأقل): ${requiredDocLabel}`
+          : `Scholarship active! Please upload your support proof in addition to primary ID (requires 2+ files): ${requiredDocLabel}`;
       }
       const sumAnswer = Number(captchaAnswer);
       if (isNaN(sumAnswer) || sumAnswer !== (captchaValues.num1 + captchaValues.num2)) {
@@ -350,7 +440,9 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
       submittedAt: new Date().toISOString().substring(0, 10),
       calcTuition: feeStatus.base,
       calcDiscount: feeStatus.discount,
-      calcTotal: feeStatus.total
+      calcTotal: feeStatus.total,
+      scholarshipType: formData.scholarshipType,
+      calcScholarshipDiscount: feeStatus.scholarshipDiscount
     };
 
     // Update list & local storage
@@ -364,6 +456,13 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
     // Track state to trigger completion view
     setLatestSubmittedApp(newApp);
     setStep(5); // Complete Step
+    setHasRestoredDraft(false);
+    try {
+      localStorage.removeItem("iub_admission_form_autosave");
+      localStorage.removeItem("iub_admission_form_step_autosave");
+    } catch (e) {
+      console.warn("Could not remove auto-saved data on submit:", e);
+    }
   };
 
   // Track admission ticket search
@@ -431,7 +530,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
   });
 
   const exportCSV = () => {
-    const headers = ["Application ID", "Full Name", "Email", "Phone / WhatsApp", "Country", "Degree", "College", "Specialty", "Quran Memorizer", "Fee Total (EUR)", "Submitted Date", "Status"];
+    const headers = ["Application ID", "Full Name", "Email", "Phone / WhatsApp", "Country", "Degree", "College", "Specialty", "Quran Memorizer", "Scholarship", "Fee Total (EUR)", "Submitted Date", "Status"];
     const rows = filteredSubmissions.map(s => [
       s.id,
       s.fullName,
@@ -442,6 +541,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
       s.college,
       s.specialty,
       s.isMemorizer ? "YES" : "NO",
+      s.scholarshipType || "none",
       s.calcTotal,
       s.submittedAt,
       s.status
@@ -486,12 +586,20 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
       isMemorizer: false,
       extraPremiumAdvisor: false,
       notes: "",
-      uploadedFiles: []
+      uploadedFiles: [],
+      scholarshipType: "none"
     });
     setStep(1);
     generateCaptcha();
     setErrors({});
     setLatestSubmittedApp(null);
+    setHasRestoredDraft(false);
+    try {
+      localStorage.removeItem("iub_admission_form_autosave");
+      localStorage.removeItem("iub_admission_form_step_autosave");
+    } catch (e) {
+      console.warn("Could not remove auto-saved data:", e);
+    }
   };
 
   return (
@@ -544,6 +652,8 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
             <Database className="w-3.5 h-3.5" />
             <span>{isRtl ? "لوحة الإدارة" : "Registrar Panel"}</span>
           </button>
+
+          <AdmissionStatusTrackerModal currentLang={currentLang} />
         </div>
       </div>
 
@@ -724,6 +834,16 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                                       📿 {isRtl ? "حافظ" : "Memorizer"}
                                     </span>
                                   )}
+                                  {sub.scholarshipType && sub.scholarshipType !== "none" && (
+                                    <span className="px-1.5 py-0.5 rounded bg-sky-500/10 text-[9px] font-bold text-sky-400">
+                                      🎓 {sub.scholarshipType === "merit" 
+                                        ? (isRtl ? "جدارة" : "Merit")
+                                        : sub.scholarshipType === "regional"
+                                        ? (isRtl ? "إقليمي" : "Regional")
+                                        : (isRtl ? "حاجة" : "Need-Based")
+                                      }
+                                    </span>
+                                  )}
                                 </div>
                               </td>
 
@@ -885,10 +1005,19 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                     <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl flex justify-between items-center text-[11px]">
                       <div>
                         <p className="text-slate-400 font-bold">{isRtl ? "الرسوم السنوية المقررة" : "Annual Tuition Assessed"}</p>
-                        <p className="text-[9px] text-slate-500 mt-0.5">
-                          {trackedApp.isMemorizer 
-                            ? (isRtl ? "✓ تم تطبيق خصم حفظة القرآن الكريم" : "✓ Quran Memorizer special price applied")
-                            : (isRtl ? "لا توجد خصومات مطبقة" : "Standard tuition package")}
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          {trackedApp.isMemorizer && (isRtl ? "✓ تم تطبيق خصم حفظ الـقرآن (20%) " : "✓ Quran Memorizer special price applied (20%) ")}
+                          {trackedApp.scholarshipType && trackedApp.scholarshipType !== "none" && (
+                            <span className="block mt-0.5 text-sky-400 font-bold">
+                              {trackedApp.scholarshipType === "merit" 
+                                ? (isRtl ? "✓ تم تطبيق منحة التميز الأكاديمي (30% خصم)" : "✓ 30% Merit Scholarship applied")
+                                : trackedApp.scholarshipType === "regional"
+                                ? (isRtl ? "✓ تم تطبيق منحة الدعم الإقليمي (25% خصم)" : "✓ 25% Regional Scholarship applied")
+                                : (isRtl ? "✓ تم تطبيق منحة صندوق معونة الطلاب (40% خصم)" : "✓ 40% Financial Aid applied")
+                              }
+                            </span>
+                          )}
+                          {!trackedApp.isMemorizer && (!trackedApp.scholarshipType || trackedApp.scholarshipType === "none") && (isRtl ? "لا توجد خصومات مطبقة" : "Standard tuition package")}
                         </p>
                       </div>
                       <div className="text-right">
@@ -1012,6 +1141,51 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                   <span className={step >= 4 ? "text-slate-350" : ""}>{isRtl ? "مراجعة وحساب" : "Assess"}</span>
                 </div>
               </div>
+            )}
+
+            {/* Draft Restored Banner notification */}
+            {step <= 4 && hasRestoredDraft && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-6 p-4.5 bg-emerald-950/30 border border-emerald-500/20 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-300 relative overflow-hidden"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                    <Sparkles className="w-4 h-4 animate-pulse" />
+                  </div>
+                  <div className={isRtl ? "text-right" : "text-left"}>
+                    <p className="text-xs font-black text-white">
+                      {isRtl ? "✨ تم استرداد مسودتك تلقائياً" : "✨ Registered draft restored"}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed font-semibold">
+                      {isRtl
+                        ? "لقد قمنا بحفظ واستعادة البيانات المعبأة لحمايتها من الفقدان."
+                        : "Your previous progress has been fetched and recovered securely in your browser."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setHasRestoredDraft(false);
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-755 text-[10px] font-extrabold text-slate-300 transition cursor-pointer"
+                  >
+                    {isRtl ? "متابعة" : "Dismiss"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="px-3 py-1.5 rounded-lg bg-red-950/40 border border-red-500/20 hover:bg-red-900/20 text-[10px] font-extrabold text-[#f87171] transition cursor-pointer"
+                  >
+                    {isRtl ? "مسح المسودة والبدء مجدداً" : "Start Fresh"}
+                  </button>
+                </div>
+              </motion.div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -1212,6 +1386,88 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                     </select>
                   </div>
 
+                  {/* Scholarship & Fellowship Programs */}
+                  <div className="border-t border-slate-800/60 pt-5 mt-4 space-y-3">
+                    <div className={isRtl ? "text-right" : "text-left"}>
+                      <h4 className="text-xs font-black text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <Award className="w-4 h-4 text-amber-500" />
+                        {isRtl ? "برامج المنح الدراسية والدعم المالي الإضافي (اختياري)" : "Scholarship & Financial Aid Opportunities (Optional)"}
+                      </h4>
+                      <p className="text-[10px] text-slate-450 mt-1 leading-relaxed">
+                        {isRtl 
+                          ? "اختر طيف المنحة المناسب لوضعك الأكاديمي أو الاجتماعي للحصول على خصومات على تكلفة الدراسة المعتمدة. سيقوم مكتب القبول بمراجعة مستنداتك وتفصيل استحقاقك بالخطوة القادمة."
+                          : "Select an eligible scholarship category based on your scholastic merits, residence country, or economic status. Applying will configure document criteria on the verification screen."
+                        }
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1.5">
+                      {[
+                        { 
+                          type: "none", 
+                          title: isRtl ? "قيد وطلب اعتيادي" : "Standard Tuition", 
+                          desc: isRtl ? "تطبيق قياسي بدون طلب منحة دراسية" : "No scholarship request", 
+                          badge: isRtl ? "الرسوم الأساسية" : "Standard Tuition", 
+                          color: "border-slate-800/80 hover:border-slate-700 bg-slate-950/25 text-slate-400",
+                          activeColor: "bg-slate-100 border-slate-100 text-slate-950",
+                          icon: <BookOpen className="w-4 h-4 shrink-0 text-slate-950" />
+                        },
+                        { 
+                          type: "merit", 
+                          title: isRtl ? "جدارة وتميز أكاديمي" : "Merit Excellence", 
+                          desc: isRtl ? "لمعدل تراكمي 3.7+ بكشف الدرجات السابق" : "For past cumulative GPA of 3.7+", 
+                          badge: isRtl ? "خصم -30% تلقائياً" : "-30% Off Tuition", 
+                          color: "border-slate-800/80 hover:border-amber-500/30 bg-slate-950/25 hover:text-amber-400",
+                          activeColor: "bg-amber-500/20 border-amber-500/70 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.1)]",
+                          icon: <Award className="w-4 h-4 shrink-0" />
+                        },
+                        { 
+                          type: "regional", 
+                          title: isRtl ? "معونة إقليمية ودعم بلدان" : "Regional Aid Support", 
+                          desc: isRtl ? "للرواد والمقيمين في دول مخصصة مستحقة" : "For residents from specific countries", 
+                          badge: isRtl ? "خصم -25% تلقائياً" : "-25% Off Tuition", 
+                          color: "border-slate-800/80 hover:border-sky-500/30 bg-slate-950/25 hover:text-sky-400",
+                          activeColor: "bg-sky-500/20 border-sky-500/70 text-sky-200 shadow-[0_0_15px_rgba(14,165,233,0.1)]",
+                          icon: <Globe className="w-4 h-4 shrink-0" />
+                        },
+                        { 
+                          type: "need", 
+                          title: isRtl ? "ضمان العسر والاحتياج المالي" : "Need-Based Hardship", 
+                          desc: isRtl ? "برعاية صندوق الطلاب ومعونة العائلات" : "Student support aid fund matching", 
+                          badge: isRtl ? "خصم -40% تلقائياً" : "-40% Off Tuition", 
+                          color: "border-slate-800/80 hover:border-rose-500/30 bg-slate-950/25 hover:text-rose-400",
+                          activeColor: "bg-rose-500/20 border-rose-500/70 text-rose-200 shadow-[0_0_15px_rgba(244,63,94,0.1)]",
+                          icon: <Heart className="w-4 h-4 shrink-0" />
+                        }
+                      ].map((sch) => {
+                        const isSelected = formData.scholarshipType === sch.type;
+                        return (
+                          <button
+                            key={sch.type}
+                            type="button"
+                            onClick={() => setFormData(p => ({ ...p, scholarshipType: sch.type as any }))}
+                            className={`w-full p-3 px-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer relative overflow-hidden group ${isSelected ? sch.activeColor : sch.color}`}
+                          >
+                            <div className="flex items-center gap-2 mb-1 w-full justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className={`p-1 rounded bg-slate-850/50 ${isSelected ? 'text-white' : 'text-slate-500'}`}>
+                                  {sch.icon}
+                                </div>
+                                <span className={`font-extrabold text-xs tracking-tight text-white group-hover:text-inherit ${isSelected ? 'text-inherit' : ''}`}>{sch.title}</span>
+                              </div>
+                              <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-white/10 text-white' : 'bg-slate-900/40 text-gray-450'}`}>
+                                {sch.badge}
+                              </span>
+                            </div>
+                            <span className={`text-[10px] leading-tight block select-none ${isSelected ? 'text-slate-200' : 'text-slate-450'}`}>
+                              {sch.desc}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div className="pt-4 flex justify-between gap-4">
                     <button
                       type="button"
@@ -1281,6 +1537,57 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                       </div>
                     </div>
                   </div>
+
+                  {/* Dynamic Scholarship Document requirement indicator */}
+                  {formData.scholarshipType && formData.scholarshipType !== "none" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-4 bg-sky-950/40 border border-sky-500/20 rounded-2xl flex items-start gap-3 text-slate-350"
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-450 shrink-0 mt-0.5">
+                        <Award className="w-4 h-4" />
+                      </div>
+                      <div className={isRtl ? "text-right" : "text-left"}>
+                        <h5 className="font-extrabold text-white text-xs">
+                          {isRtl ? "📢 مستند إثبات المنحة مطلوب تلقائياً" : "📢 Scholarship Document Proof Required"}
+                        </h5>
+                        <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                          {isRtl 
+                            ? `لقد تقدمت بطلب الحصول على (${
+                                formData.scholarshipType === "merit" ? "منحة التميز الأكاديمي" :
+                                formData.scholarshipType === "regional" ? "منحة الدعم الإقليمي" :
+                                "معونة الضمان المالي"
+                              }). لتأكيد استحقاق هذا الخصم، يرجى رفع المستند التالي في حقل الرفع بالأسفل أو تصويره بالكاميرا مباشرة:` 
+                            : `You have requested a (${
+                                formData.scholarshipType === "merit" ? "Academic Merit Scholarship [-30%]" :
+                                formData.scholarshipType === "regional" ? "Regional Relief Support [-25%]" :
+                                "Hardship Financial Fellowship [-40%]"
+                              }). To claim this discount, you must upload or scan the following document proof:`
+                          }
+                        </p>
+                        <p className="text-[11px] font-black text-amber-400 mt-1.5 underline">
+                          {formData.scholarshipType === "merit" 
+                            ? (isRtl ? "← كشف الدرجات أو شهادة التفوق (GPA >= 3.7) أو خطاب توصية أكاديمي" : "← Official past transcripts (GPA >= 3.7) or an academic recommendation letter")
+                            : formData.scholarshipType === "regional"
+                            ? (isRtl ? "← سند عنوان السكن، فاتورة مرافق رسمية، أو بطاقة الإقامة الإقليمية" : "← Verification of residency / regional government utilities statement")
+                            : (isRtl ? "← كشف حساب، مستند الضمان الاجتماعي، أو ما يثبت الاحتياج المالي للأسرة" : "← Income statement, official family tax certificate, or written hardship statement proof")
+                          }
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Real-time Document Camera Scanner integrated */}
+                  <DocumentScanner 
+                    currentLang={currentLang} 
+                    onScanConfirm={(name, size, type) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        uploadedFiles: [...prev.uploadedFiles, { name, size, type }]
+                      }));
+                    }}
+                  />
 
                   {/* File Upload drag and drop zone */}
                   <div>
@@ -1454,9 +1761,23 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                       </div>
 
                       {formData.isMemorizer && (
-                        <div className="flex justify-between text-amber-450 font-bold">
+                        <div className="flex justify-between text-amber-500 font-bold">
                           <span>{isRtl ? "خصم حافظ القرآن الكريم الممنوح:" : "Noble Quran Fellowship Discount:"}</span>
                           <span className="font-mono">-{feeStatus.discount} EUR</span>
+                        </div>
+                      )}
+
+                      {formData.scholarshipType && formData.scholarshipType !== "none" && (
+                        <div className="flex justify-between text-sky-400 font-bold">
+                          <span>
+                            {formData.scholarshipType === "merit" 
+                              ? (isRtl ? "خصم منحة التميز والامتياز (30%):" : "Academic Merit Scholarship [-30%]:")
+                              : formData.scholarshipType === "regional"
+                              ? (isRtl ? "خصم دعم الطلاب الإقليمي (25%):" : "Regional Student Relief [-25%]:")
+                              : (isRtl ? "مساعدة المعونة وصندوق الطلاب (40%):" : "Hardship Financial Aid [-40%]:")
+                            }
+                          </span>
+                          <span className="font-mono">-{feeStatus.scholarshipDiscount} EUR</span>
                         </div>
                       )}
 
@@ -1515,10 +1836,85 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="space-y-6 py-6 text-center"
+                  className="space-y-6 py-6 text-center md:py-8"
                 >
-                  <div className="w-16 h-16 bg-emerald-550/15 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto text-emerald-400">
-                    <CheckCircle className="w-8 h-8" />
+                  {/* Premium Animated Success Checkmark & Burst */}
+                  <div className="relative w-28 h-28 mx-auto flex items-center justify-center mb-4">
+                    {/* Layer 1: Expanding concentric circles of energy */}
+                    <motion.div
+                      initial={{ scale: 0.6, opacity: 0 }}
+                      animate={{ scale: [1, 1.45, 1.75], opacity: [0.6, 0.25, 0] }}
+                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+                      className="absolute inset-4 rounded-full bg-emerald-500/10"
+                    />
+                    <motion.div
+                      initial={{ scale: 0.6, opacity: 0 }}
+                      animate={{ scale: [1, 1.25, 1.45], opacity: [0.7, 0.35, 0] }}
+                      transition={{ duration: 1.8, delay: 0.5, repeat: Infinity, ease: "easeOut" }}
+                      className="absolute inset-4 rounded-full bg-emerald-500/15"
+                    />
+                    
+                    {/* Layer 2: Core Spinning Outer Orbital Ring */}
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring", stiffness: 150, damping: 20 }}
+                      className="absolute inset-2"
+                    >
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
+                        className="w-full h-full rounded-full border border-dashed border-emerald-500/40"
+                      />
+                    </motion.div>
+
+                    {/* Layer 3: Main Core Glowing Shield Circle */}
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                      className="relative w-16 h-16 bg-emerald-950/40 border-2 border-emerald-500 rounded-full flex items-center justify-center shadow-xl shadow-emerald-500/20 z-10"
+                    >
+                      {/* Animated checkmark path drawing */}
+                      <svg 
+                        className="w-8 h-8 text-emerald-400 stroke-current" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        strokeWidth="3.5" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      >
+                        <motion.path
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 0.7, delay: 0.2, ease: "easeInOut" }}
+                          d="M20 6L9 17l-5-5"
+                        />
+                      </svg>
+                    </motion.div>
+
+                    {/* Layer 4: Celebratory Spark particles emitted from center the moment the card renders */}
+                    {[...Array(8)].map((_, i) => {
+                      const angle = (i * 360) / 8;
+                      const rad = (angle * Math.PI) / 180;
+                      const distance = 46;
+                      const tx = Math.cos(rad) * distance;
+                      const ty = Math.sin(rad) * distance;
+                      return (
+                        <motion.div
+                          key={i}
+                          initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
+                          animate={{ 
+                            x: tx, 
+                            y: ty, 
+                            scale: [0, 1.2, 0.7, 0], 
+                            opacity: [1, 1, 0.6, 0] 
+                          }}
+                          transition={{ duration: 0.9, delay: 0.45, ease: "easeOut" }}
+                          className="absolute w-1.5 h-1.5 rounded-full bg-emerald-400"
+                        />
+                      );
+                    })}
                   </div>
 
                   <div>
@@ -1564,10 +1960,19 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                       <div className="border-t border-slate-850/60 pt-2 flex justify-between items-center">
                         <div>
                           <span className="text-slate-500 text-[10px]">{isRtl ? "الرسوم السنوية التقديرية:" : "Annual assessed tuition Contribution:"}</span>
-                          <p className="text-[9px] text-slate-550 italic">
-                            {latestSubmittedApp.isMemorizer 
-                              ? (isRtl ? "حسم %20 لحفظة القرآن مطبق" : "20% Fellowship tuition applied") 
-                              : (isRtl ? "رسوم الاستثمار القياسية" : "Standard tuition fee")}
+                          <p className="text-[9px] text-slate-450 italic leading-snug">
+                            {latestSubmittedApp.isMemorizer && (isRtl ? "✓ حسم %20 لحفظة القرآن الكريم " : "✓ 20% Quran Memorizer Fellowship ")}
+                            {latestSubmittedApp.scholarshipType && latestSubmittedApp.scholarshipType !== "none" && (
+                              <span className="block mt-0.5 text-sky-400 font-bold">
+                                {latestSubmittedApp.scholarshipType === "merit" 
+                                  ? (isRtl ? "✓ منحة التفوق والامتياز (30% خصم)" : "✓ 30% Merit Scholarship assigned")
+                                  : latestSubmittedApp.scholarshipType === "regional"
+                                  ? (isRtl ? "✓ منحة الدعم الإقليمي (25% خصم)" : "✓ 25% Regional support assigned")
+                                  : (isRtl ? "✓ معونة صندوق الطلاب (40% خصم)" : "✓ 40% Financial Aid assigned")
+                                }
+                              </span>
+                            )}
+                            {!latestSubmittedApp.isMemorizer && (!latestSubmittedApp.scholarshipType || latestSubmittedApp.scholarshipType === "none") && (isRtl ? "رسوم الاستثمار القياسية" : "Standard tuition fee")}
                           </p>
                         </div>
                         <span className="font-mono font-black text-emerald-400 text-sm sm:text-base">

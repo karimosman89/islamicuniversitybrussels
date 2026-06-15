@@ -50,6 +50,12 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     viewGrounding: "عرض مراجع التحقق من قوقل (مصادر المحرك الذكي)",
     citationsHeading: "المصادر الأكاديمية والوثائق التي استند إليها محرك Gemini للتحقق:",
     noCitations: "البحث جارٍ عن ملتقيات جديدة للتحميل والربط الجغرافي.",
+    all: "كل المواضيع",
+    General: "عام",
+    Academic: "أكاديمي",
+    Campus: "شؤون الحرم",
+    Research: "البحث العلمي",
+    noNewsInSelectedTopic: "لا توجد أخبار ممسوحة حالياً في هذا القسم. جرب قسماً آخر.",
     activeSince: "آخر فحص للقبول والمنح:",
     minutesAgo: "دقائق مضت",
     justNow: "الآن"
@@ -68,6 +74,12 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     viewGrounding: "View Google Grounding Citations (AI Source Index)",
     citationsHeading: "Verified Search Indexes retrieved by the Gemini API model:",
     noCitations: "Search engine is active looking up new academic publications.",
+    all: "All Topics",
+    General: "General",
+    Academic: "Academic",
+    Campus: "Campus & Prep",
+    Research: "Research Forum",
+    noNewsInSelectedTopic: "No active news grounded under this topic filter yet.",
     activeSince: "Validated:",
     minutesAgo: "min ago",
     justNow: "Just now"
@@ -84,8 +96,14 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     news: "Novità",
     academic: "Ammissioni",
     viewGrounding: "Visualizza citazioni di Google Grounding (Indice AI)",
-    citationsHeading: "Indici di ricerca verificati recuperati dall'API Gemini:",
+    citationsHeading: "Indici di ricerca verificati recuperata dall'API Gemini:",
     noCitations: "Ricerca attiva di nuovi eventi accademici.",
+    all: "Tutti i temi",
+    General: "Generale",
+    Academic: "Accademico",
+    Campus: "Campus",
+    Research: "Ricerca",
+    noNewsInSelectedTopic: "Nessuna notizia trovata in questo tema.",
     activeSince: "Validato:",
     minutesAgo: "min fa",
     justNow: "Ora"
@@ -104,6 +122,12 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     viewGrounding: "Voir citations Google Grounding (Index AI)",
     citationsHeading: "Index de recherche vérifiés récupérés par l'API Gemini :",
     noCitations: "Moteur de recherche actif à l'écoute de nouveaux événements.",
+    all: "Tous les sujets",
+    General: "Général",
+    Academic: "Académique",
+    Campus: "Vie Étudiante",
+    Research: "Recherche",
+    noNewsInSelectedTopic: "Aucune actualité trouvée sous ce thème.",
     activeSince: "Validé :",
     minutesAgo: "min",
     justNow: "À l'instant"
@@ -122,10 +146,65 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     viewGrounding: "Google Grounding-Nachweise anzeigen (KI-Quellenindex)",
     citationsHeading: "Durch das Gemini-API-Modell verifizierte Suchindizes:",
     noCitations: "Aktive Suche nach neuen akademischen Veranstaltungen.",
+    all: "Alle Themen",
+    General: "Allgemein",
+    Academic: "Akademisch",
+    Campus: "Campus",
+    Research: "Forschung",
+    noNewsInSelectedTopic: "Keine Nachrichten unter diesem Thema gefunden.",
     activeSince: "Validiert vor:",
     minutesAgo: "Min. her",
     justNow: "Gerade eben"
   }
+};
+
+const getTopicOfItem = (item: NewsItem): "General" | "Academic" | "Campus" | "Research" => {
+  const text = `${item.title} ${item.summary} ${item.category}`.toLowerCase();
+  
+  if (
+    text.includes("research") || 
+    text.includes("fellowship") || 
+    text.includes("publication") || 
+    text.includes("journal") || 
+    text.includes("studies") || 
+    text.includes("papers") || 
+    text.includes("symposium") || 
+    text.includes("colloque") || 
+    text.includes("scientific") || 
+    item.category === "conference"
+  ) {
+    return "Research";
+  }
+  
+  if (
+    text.includes("campus") || 
+    text.includes("student") || 
+    text.includes("classroom") || 
+    text.includes("interactive") || 
+    text.includes("seminar") || 
+    text.includes("housing") || 
+    text.includes("dorm") || 
+    text.includes("workshop") || 
+    text.includes("activities")
+  ) {
+    return "Campus";
+  }
+  
+  if (
+    text.includes("academic") || 
+    text.includes("equivalence") || 
+    text.includes("curriculum") || 
+    text.includes("theology") || 
+    text.includes("pedagogy") || 
+    text.includes("accreditations") || 
+    text.includes("admissions") || 
+    text.includes("policy") || 
+    item.category === "academic"
+  ) {
+    return "Academic";
+  }
+  
+  return "General";
 };
 
 export const AcademicNewsFeed: React.FC<AcademicNewsFeedProps> = ({ currentLang, isRtl }) => {
@@ -137,6 +216,7 @@ export const AcademicNewsFeed: React.FC<AcademicNewsFeedProps> = ({ currentLang,
   const [showCitations, setShowCitations] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [timeAgoString, setTimeAgoString] = useState<string>("");
+  const [selectedTopic, setSelectedTopic] = useState<"All" | "General" | "Academic" | "Campus" | "Research">("All");
   const autoSlideInterval = useRef<NodeJS.Timeout | null>(null);
   const isHovered = useRef<boolean>(false);
 
@@ -196,14 +276,19 @@ export const AcademicNewsFeed: React.FC<AcademicNewsFeedProps> = ({ currentLang,
     return () => clearInterval(pollTimer);
   }, []);
 
+  const filteredNews = news.filter((item) => {
+    if (selectedTopic === "All") return true;
+    return getTopicOfItem(item) === selectedTopic;
+  });
+
   // Auto sliding carousel
   useEffect(() => {
-    if (news.length === 0 || loading) return;
+    if (filteredNews.length === 0 || loading) return;
 
     const startInterval = () => {
       autoSlideInterval.current = setInterval(() => {
         if (!isHovered.current) {
-          setActiveIndex((prev) => (prev + 1) % news.length);
+          setActiveIndex((prev) => (prev + 1) % filteredNews.length);
         }
       }, 7000); // 7 seconds slide
     };
@@ -215,19 +300,19 @@ export const AcademicNewsFeed: React.FC<AcademicNewsFeedProps> = ({ currentLang,
         clearInterval(autoSlideInterval.current);
       }
     };
-  }, [news, loading]);
+  }, [filteredNews.length, loading]);
 
   const handleNext = () => {
-    if (news.length === 0) return;
-    setActiveIndex((prev) => (prev + 1) % news.length);
+    if (filteredNews.length === 0) return;
+    setActiveIndex((prev) => (prev + 1) % filteredNews.length);
   };
 
   const handlePrev = () => {
-    if (news.length === 0) return;
-    setActiveIndex((prev) => (prev - 1 + news.length) % news.length);
+    if (filteredNews.length === 0) return;
+    setActiveIndex((prev) => (prev - 1 + filteredNews.length) % filteredNews.length);
   };
 
-  const currentItem = news[activeIndex];
+  const currentItem = filteredNews[activeIndex];
 
   // Helper mapping matching styling for category labels
   const getCategoryStyles = (category: string) => {
@@ -293,6 +378,30 @@ export const AcademicNewsFeed: React.FC<AcademicNewsFeedProps> = ({ currentLang,
           </div>
         </div>
 
+        {/* Category Filters Pills Row */}
+        <div className={`flex flex-wrap gap-1.5 mt-3 pb-2 border-b border-gray-100/60 ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
+          {(["All", "General", "Academic", "Campus", "Research"] as const).map((topic) => {
+            const isActive = selectedTopic === topic;
+            const translationKey = topic === "All" ? "all" : topic;
+            return (
+              <button
+                key={topic}
+                onClick={() => {
+                  setSelectedTopic(topic);
+                  setActiveIndex(0);
+                }}
+                className={`px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all duration-200 cursor-pointer border ${
+                  isActive
+                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-600/10"
+                    : "bg-gray-50 text-gray-500 hover:text-gray-900 hover:bg-gray-100 border-gray-150"
+                }`}
+              >
+                {t[translationKey] || topic}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Content Slider Window */}
         <div 
           className="mt-2.5 relative min-h-[58px] overflow-hidden"
@@ -307,6 +416,10 @@ export const AcademicNewsFeed: React.FC<AcademicNewsFeedProps> = ({ currentLang,
           ) : error && news.length === 0 ? (
             <div className="py-4 text-center">
               <p className="text-xs text-red-500 font-bold">{t.error}</p>
+            </div>
+          ) : filteredNews.length === 0 ? (
+            <div className="py-6 text-center bg-gray-50 border border-gray-100 rounded-xl">
+              <p className="text-xs text-gray-400 font-bold">{t.noNewsInSelectedTopic}</p>
             </div>
           ) : (
             <div className={`grid grid-cols-[auto_1fr_auto] items-center gap-2.5 ${isRtl ? "dir-rtl" : ""}`}>
@@ -325,7 +438,7 @@ export const AcademicNewsFeed: React.FC<AcademicNewsFeedProps> = ({ currentLang,
                 <AnimatePresence mode="wait">
                   {currentItem && (
                     <motion.div
-                      key={activeIndex}
+                      key={`${selectedTopic}-${activeIndex}`}
                       initial={{ opacity: 0, x: isRtl ? -10 : 10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: isRtl ? 10 : -10 }}
@@ -339,6 +452,12 @@ export const AcademicNewsFeed: React.FC<AcademicNewsFeedProps> = ({ currentLang,
                             {getCategoryStyles(currentItem.category).icon}
                             <span>{t[currentItem.category] || currentItem.category}</span>
                           </span>
+                          
+                          {/* Dynamically assigned category topic badge */}
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                            {t[getTopicOfItem(currentItem)] || getTopicOfItem(currentItem)}
+                          </span>
+
                           <span className="text-[10px] text-gray-400 font-bold flex items-center gap-1 font-sans">
                             <Calendar className="w-3 h-3 text-primary/60" />
                             {currentItem.date}
@@ -351,7 +470,7 @@ export const AcademicNewsFeed: React.FC<AcademicNewsFeedProps> = ({ currentLang,
                         <h5 className="text-xs sm:text-sm font-extrabold text-gray-900 leading-snug tracking-tight">
                           {currentItem.title}
                         </h5>
-                        <p className="text-[11px] sm:text-xs text-gray-650 font-medium leading-relaxed max-w-4xl line-clamp-1">
+                        <p className="text-[11px] sm:text-xs text-gray-650 font-medium leading-relaxed max-w-4xl line-clamp-1 font-sans">
                           {currentItem.summary}
                         </p>
                       </div>
@@ -433,13 +552,13 @@ export const AcademicNewsFeed: React.FC<AcademicNewsFeedProps> = ({ currentLang,
         )}
 
         {/* Small Progress Bar Indicator dots in sync with slide index */}
-        {news.length > 1 && !loading && (
-          <div className="mt-2 flex justify-center gap-1.5">
-            {news.map((_, idx) => (
+        {filteredNews.length > 1 && !loading && (
+          <div className="mt-2 flex justify-center gap-1.5 font-sans">
+            {filteredNews.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setActiveIndex(idx)}
-                className={`h-1.5 rounded-full transition-all ${idx === activeIndex ? `w-4 ${getCategoryStyles(news[idx]?.category).dots}` : "w-1.5 bg-gray-200"}`}
+                className={`h-1.5 rounded-full transition-all ${idx === activeIndex ? `w-4 ${getCategoryStyles(filteredNews[idx]?.category).dots}` : "w-1.5 bg-gray-200"}`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
             ))}

@@ -1,6 +1,6 @@
 {
   "name": "الجامعة الإسلامية بروكسل - فرع أوروبا",
   "description": "الموقع الرسمي للجامعة الإسلامية بروكسل - فرع أوروبا، بيئة تعليمية تجمع بين الأصالة والمعاصرة بنظام التعليم عن بعد.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

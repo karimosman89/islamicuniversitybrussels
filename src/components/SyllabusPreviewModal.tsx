@@ -491,35 +491,237 @@ export default function SyllabusPreviewModal({
 
   // Trigger browser print of the simulated PDF container content
   const handlePrint = () => {
-    const printContent = containerRef.current?.innerHTML;
-    const winPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+    const winPrint = window.open('', '', 'left=0,top=0,width=850,height=950,toolbar=0,scrollbars=0,status=0');
     if (winPrint) {
+      const headingText = isRtl ? "المنهج الأكاديمي المعتمد" : "OFFICIAL ACADEMIC SYLLABUS";
+      
       winPrint.document.write(`
         <html>
           <head>
             <title>${document.instructor[uiLang]} - ${item.title}</title>
             <style>
-              body { font-family: 'Times New Roman', serif; padding: 40px; color: #111; line-height: 1.6; direction: ${isRtl ? 'rtl' : 'ltr'}; }
-              h1 { border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 20px; }
-              .chapter { font-size: 1.3em; font-weight: bold; margin-top: 30px; border-bottom: 1px dashed #666; padding-bottom: 5px; }
-              .para { font-size: 1.1em; margin-bottom: 15px; text-align: justify; }
-              .details { background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 30px; }
-              .seal { text-align: center; margin-top: 40px; color: #444; font-size: 0.9em; border-top: 1px solid #ddd; padding-top: 20px; }
+              @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700;800&display=swap');
+              
+              body { 
+                font-family: ${isRtl ? "'Amiri', serif" : "'Inter', 'Helvetica Neue', Arial, sans-serif"}; 
+                padding: 40px; 
+                color: #0f172a; 
+                line-height: 1.6; 
+                direction: ${isRtl ? 'rtl' : 'ltr'}; 
+                background-color: #ffffff;
+              }
+              
+              .header-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 25px;
+                border-bottom: 2px solid #0b4d37;
+                padding-bottom: 15px;
+              }
+              
+              .university-title {
+                font-size: 20px;
+                font-weight: 800;
+                color: #0b4d37;
+                margin: 0;
+              }
+              
+              .university-subtitle {
+                font-size: 11px;
+                font-weight: 600;
+                color: #475569;
+                margin: 4px 0 0 0;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              }
+
+              .official-seal-box {
+                border: 2px solid #0b4d37;
+                padding: 8px 12px;
+                text-align: center;
+                background-color: #f0fdf4;
+                border-radius: 6px;
+                font-size: 10px;
+                font-weight: 700;
+                color: #0b4d37;
+                display: inline-block;
+                float: ${isRtl ? 'left' : 'right'};
+              }
+              
+              .title-block {
+                text-align: center;
+                margin-top: 30px;
+                margin-bottom: 30px;
+              }
+              
+              .doc-title {
+                font-size: 22px;
+                font-weight: 800;
+                color: #0f172a;
+                margin: 0 0 8px 0;
+                letter-spacing: -0.5px;
+                text-transform: uppercase;
+              }
+              
+              .doc-subtitle {
+                font-size: 12px;
+                font-weight: 700;
+                color: #b45309;
+                letter-spacing: 1.5px;
+                text-transform: uppercase;
+                margin: 0;
+              }
+              
+              .meta-grid {
+                display: table;
+                width: 100%;
+                background-color: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 35px;
+                box-sizing: border-box;
+              }
+              
+              .meta-row {
+                display: table-row;
+              }
+              
+              .meta-cell {
+                display: table-cell;
+                width: 50%;
+                padding: 8px 12px;
+                vertical-align: top;
+                font-size: 12px;
+              }
+              
+              .meta-label {
+                font-weight: 800;
+                color: #64748b;
+                text-transform: uppercase;
+                font-size: 9px;
+                letter-spacing: 0.5px;
+                margin-bottom: 4px;
+              }
+              
+              .meta-value {
+                font-weight: 700;
+                color: #0f172a;
+                font-size: 12.5px;
+              }
+
+              .content-section {
+                margin-bottom: 40px;
+                page-break-inside: avoid;
+              }
+              
+              .chapter-heading {
+                font-size: 15px;
+                font-weight: 800;
+                color: #0b4d37;
+                border-bottom: 1.5px solid #0b4d37;
+                padding-bottom: 6px;
+                margin-top: 25px;
+                margin-bottom: 15px;
+              }
+              
+              .section-badge {
+                display: inline-block;
+                background-color: #fef3c7;
+                border: 1px solid #fde68a;
+                color: #92400e;
+                font-size: 9px;
+                font-weight: 800;
+                padding: 2.5px 6.5px;
+                border-radius: 4px;
+                margin-${isRtl ? 'left' : 'right'}: 6px;
+                margin-bottom: 8px;
+              }
+              
+              .paragraph-text {
+                font-size: 13px;
+                margin-bottom: 15px;
+                text-align: justify;
+                color: #334155;
+                text-indent: 15px;
+              }
+              
+              .academic-footer {
+                margin-top: 60px;
+                border-top: 1px solid #e2e8f0;
+                padding-top: 20px;
+                text-align: center;
+                font-size: 10px;
+                color: #94a3b8;
+                font-weight: 600;
+              }
+
+              @media print {
+                body { padding: 10px; }
+                .meta-grid { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                .official-seal-box { background-color: #f0fdf4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                .section-badge { background-color: #fef3c7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              }
             </style>
           </head>
           <body>
-            <h1>${item.title} - Academic Syllabus</h1>
-            <div class="details">
-              <p><strong>Lead Professor:</strong> ${document.instructor[uiLang]}</p>
-              <p><strong>Course Code:</strong> ${document.code}</p>
-              <p><strong>Credits Hours:</strong> ${document.credits}</p>
-              <p><strong>Department:</strong> ${document.department[uiLang]}</p>
+            <!-- Official Heading Layout -->
+            <div style="min-height: 70px; margin-bottom: 20px;">
+              <div class="official-seal-box">
+                <div>OFFICIAL RECORD</div>
+                <div style="font-size: 8px; font-weight: normal; margin-top: 2px;">BRUSSELS ACADEMIC BOARD</div>
+              </div>
+              <div style="display: inline-block;">
+                <h2 class="university-title">ISLAMIC UNIVERSITY OF BRUSSELS</h2>
+                <p class="university-subtitle">Faculté des Sciences Islamiques et de Droit Comparé</p>
+              </div>
             </div>
+
+            <div class="title-block">
+              <h1 class="doc-title">${item.title}</h1>
+              <p class="doc-subtitle">${headingText}</p>
+            </div>
+
+            <!-- Metadata Grid table-based -->
+            <div class="meta-grid">
+              <div class="meta-row">
+                <div class="meta-cell" style="border-bottom: 1px solid #edf2f7;">
+                  <div class="meta-label">${labels.code}</div>
+                  <div class="meta-value">${document.code}</div>
+                </div>
+                <div class="meta-cell" style="border-bottom: 1px solid #edf2f7;">
+                  <div class="meta-label">${labels.instructor}</div>
+                  <div class="meta-value">${document.instructor[uiLang]}</div>
+                </div>
+              </div>
+              <div class="meta-row">
+                <div class="meta-cell">
+                  <div class="meta-label">${labels.department}</div>
+                  <div class="meta-value">${document.department[uiLang]}</div>
+                </div>
+                <div class="meta-cell">
+                  <div class="meta-label">${labels.credits}</div>
+                  <div class="meta-value">${document.credits}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Academic Chapters Content -->
             ${document.pages.map(p => `
-              <div class="chapter">${p.chapterTitle}</div>
-              ${p.paragraphs.map(para => `<p class="para">${para}</p>`).join('')}
-            `).join('<hr style="border:0;border-top:1px solid #ccc;margin:40px 0;"/>')}
-            <div class="seal">${labels.sealText}</div>
+              <div class="content-section">
+                <div class="chapter-heading">${p.chapterTitle.split('|')[uiLang === 'ar' ? 0 : 1]?.trim() || p.chapterTitle}</div>
+                <div style="margin-bottom: 10px;">
+                  ${p.sections.map(sec => `<span class="section-badge">§ ${sec}</span>`).join('')}
+                </div>
+                ${p.paragraphs.map(para => `<p class="paragraph-text">${para}</p>`).join('')}
+              </div>
+            `).join('')}
+
+            <!-- Verified Academic Seal String -->
+            <div class="academic-footer">
+              <p>${labels.sealText}</p>
+              <p style="font-size: 8px; font-family: monospace; margin-top: 4px; color: #cbd5e1;">SECURE_DIGITAL_HASH_VERIFICATION_STAMP_IUB_2026</p>
+            </div>
           </body>
         </html>
       `);
@@ -799,18 +1001,29 @@ export default function SyllabusPreviewModal({
             <span className="text-[11px] font-bold">{currentLang === 'ar' ? 'يتوفر المنهج باللغتين العربية والإنجليزية كاملتين.' : 'Full syllabus files are ready for student local print.'}</span>
           </div>
 
-          <a
-            href={`/data/${docId}.pdf`} // Simulated file download path helper
-            onClick={(e) => {
-              // Simulate download alert/trigger nicely
-              e.preventDefault();
-              alert(currentLang === 'ar' ? `🎉 جاري بدء تحميل المنهج الكامل: ${item.title} (${item.size})` : `🎉 Initializing download for: ${item.title} (${item.size})`);
-            }}
-            className="w-full sm:w-auto py-2.5 px-6 bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-md shadow-emerald-500/10 transition cursor-pointer"
-          >
-            <Download className="w-4 h-4" />
-            <span>{labels.download} ({item.size})</span>
-          </a>
+          <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="w-full sm:w-auto py-2.5 px-5 bg-white dark:bg-[#1e293b] hover:bg-slate-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 rounded-xl text-xs font-black flex items-center justify-center gap-2 border border-gray-200 dark:border-slate-700/60 shadow-sm transition cursor-pointer"
+            >
+              <Printer className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+              <span>{labels.printDoc}</span>
+            </button>
+
+            <a
+              href={`/data/${docId}.pdf`} // Simulated file download path helper
+              onClick={(e) => {
+                // Simulate download alert/trigger nicely
+                e.preventDefault();
+                alert(currentLang === 'ar' ? `🎉 جاري بدء تحميل المنهج الكامل: ${item.title} (${item.size})` : `🎉 Initializing download for: ${item.title} (${item.size})`);
+              }}
+              className="w-full sm:w-auto py-2.5 px-6 bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-md shadow-emerald-500/10 transition cursor-pointer"
+            >
+              <Download className="w-4 h-4" />
+              <span>{labels.download} ({item.size})</span>
+            </a>
+          </div>
         </div>
 
       </div>
