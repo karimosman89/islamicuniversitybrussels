@@ -70,6 +70,80 @@ import { AcademicRoadmap } from './components/AcademicRoadmap';
 import { AcademicPerformanceRadar } from './components/AcademicPerformanceRadar';
 import { StudentDashboard } from './components/StudentDashboard';
 
+const DEGREE_TOOLTIP_CONTENT = {
+  en: "Pricing varies by degree level. Bachelor base tuition is 1000 EUR, Master base tuition is 1200 EUR, and PhD base tuition is 1400 EUR.",
+  ar: "تختلف الرسوم باختلاف برنامج الدراسة. رسوم البكالوريوس الأساسية 1000 يورو، والماجستير 1200 يورو، والدكتوراه 1400 يورو.",
+  it: "La tariffa varia in base al livello di studi. La retta base per la Triennale è 1000 EUR, Magistrale 1200 EUR, e Dottorato 1400 EUR.",
+  de: "Die Studiengebühren variieren je nach Studiengang. Bachelor-Grundgebühr beträgt 1000 EUR, Master-Grundgebühr 1200 EUR und PhD-Grundgebühr 1400 EUR.",
+  fr: "Les tarifs varient selon le diplôme. La scolarité de base est de 1000 EUR pour la Licence, 1200 EUR pour le Master, et 1400 EUR pour le Doctorat."
+};
+
+const QURAN_TOOLTIP_CONTENT = {
+  en: "Checking this honors you as a Quran memorizer with a dedicated merit scholarship, deducting 20% from the Bachelor base fee, or 10% from the Master/PhD base fee.",
+  ar: "تفعيل هذا الخيار يمنحك منحة استحقاق خاصة لحفظة القرآن الكريم، مما يخصم 20% من الرسوم الأساسية للبكالوريوس، أو 10% لبرامج الماجستير والدكتوراه.",
+  it: "Selezionando questa opzione, riceverai una borsa di studio di merito scolastica dedicata ai memorizzatori del Corano, risparmiando il 20% della retta base per la Triennale o il 10% per Magistrale/Dottorato.",
+  de: "Durch Aktivierung dieser Option erhalten Sie ein Leistungsstipendium für das Auswendiglernen des Korans, wodurch 20 % der Bachelor-Grundgebühr bzw. 10 % der Master-/PhD-Grundgebühr abgezogen werden.",
+  fr: "En cochant cette option, vous bénéficiez d'une bourse de mérite spéciale pour la mémorisation du Coran, déduisant 20 % des frais de base de Licence ou 10 % de ceux de Master/Doctorat."
+};
+
+const SHIPPING_TOOLTIP_CONTENT = {
+  en: "Adds a flat 150 EUR to cover printing premium heavy-stock parchment, university seal stamping, legal apostille verification, and secure DHL international express parcel couriers.",
+  ar: "يضيف 150 يورو لتغطية طباعة المستندات على ورق البردي المقوى الفاخر، والختم الجامعي البارز، والتوثيق القانوني، وشحنها الدولي الآمن والسريع عبر DHL.",
+  it: "Aggiunge 150 EUR per coprire la stampa dei documenti su carta pergamena pesante premium, la bollatura accademica, l'apostille legale e il corriere espresso internazionale DHL.",
+  de: "Fügt pauschal 150 EUR hinzu zur Abdeckung des Drucks auf Premium-Karton, der Prägung des Universitätssiegels, der Apostille-Beglaubigung und des versicherten internationalen Expressversands per DHL.",
+  fr: "Ajoute un forfait de 150 EUR pour couvrir l'impression sur parchemin de qualité supérieure, le sceau de l'université, la certification apostille et l'envoi sécurisé par courrier express international DHL."
+};
+
+const SUPPORT_TOOLTIP_CONTENT = {
+  en: "Adds a flat 100 EUR to assign a designated supervisor for personalized thesis guidance, weekly follow-up research reviews, and direct academic chat pipeline.",
+  ar: "يضيف 100 يورو لتعيين مشرف أكاديمي خاص لمرافقتك في كتابة رسالة البحث، والمتابعة الأسبوعية الدقيقة، وتوفير قنوات اتصال تفاعلية مباشرة.",
+  it: "Aggiunge 100 EUR per l'assegnazione di un tutor accademico finale, revisioni settimanali e chat di supporto diretta.",
+  de: "Fügt pauschal 100 EUR hinzu, um einen akademischen Betreuer für die persönliche Begleitung bei der schriftlichen Arbeit, wöchentliche Updates und direkten Kontakt zuzuweisen.",
+  fr: "Ajoute un forfait de 100 EUR pour l'attribution d'un directeur académique attitré pour l'aide personnalisée au mémoire, les bilans hebdomadaires et l'accès direct aux conseils."
+};
+
+interface InfoTooltipProps {
+  content: Record<string, string>;
+  currentLang: string;
+  isRtl?: boolean;
+}
+
+function InfoTooltip({ content, currentLang, isRtl = false }: InfoTooltipProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const text = content[currentLang] || content['en'] || '';
+
+  return (
+    <div className="relative inline-block align-middle select-none mx-1 text-slate-400">
+      <button
+        type="button"
+        onMouseEnter={() => setIsOpen(true)}
+        onMouseLeave={() => setIsOpen(false)}
+        onClick={() => setIsOpen(!isOpen)}
+        onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+        className="text-slate-400 hover:text-white transition duration-150 ease-in-out focus:outline-none focus:text-white p-0.5 rounded cursor-pointer"
+        aria-label="More information"
+      >
+        <HelpCircle className="w-3.5 h-3.5" />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 5, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 5, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className={`absolute z-30 w-64 p-3 bg-slate-950 text-[10px] font-semibold leading-relaxed text-slate-100 rounded-xl border border-slate-800 shadow-xl pointer-events-none ${
+              isRtl ? 'right-0 origin-top-right text-right' : 'left-0 origin-top-left text-left'
+            } mt-1`}
+          >
+            {text}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 const LANGUAGES = [
   { code: 'ar', label: 'العربية', flag: '🇸🇦' },
   { code: 'en', label: 'English', flag: '🇬🇧' },
@@ -872,10 +946,14 @@ export default function App() {
               ].map((tab) => {
                 const isActive = campusTab === tab.id;
                 return (
-                  <button
+                  <motion.button
                     key={tab.id}
                     onClick={() => setCampusTab(tab.id as any)}
-                    className={`p-5 rounded-2xl border text-start transition-all duration-300 relative overflow-hidden flex gap-4 ${isRtl ? 'flex-row-reverse' : 'flex-row'} ${isActive ? 'bg-primary border-primary text-white shadow-xl shadow-primary/20 scale-[1.02]' : 'bg-white border-gray-150 text-gray-700 hover:bg-slate-50 hover:border-gray-200'}`}
+                    animate={{ scale: isActive ? 1.02 : 1.0 }}
+                    whileHover={{ scale: isActive ? 1.04 : 1.025 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 450, damping: 18 }}
+                    className={`p-5 rounded-2xl border text-start transition-all duration-300 relative overflow-hidden flex gap-4 ${isRtl ? 'flex-row-reverse' : 'flex-row'} ${isActive ? 'bg-primary border-primary text-white shadow-xl shadow-primary/20' : 'bg-white border-gray-150 text-gray-700 hover:bg-slate-50 hover:border-gray-200'}`}
                   >
                     <div className={`p-2.5 rounded-xl flex items-center justify-center h-10 w-10 flex-shrink-0 ${isActive ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'}`}>
                       {tab.icon}
@@ -884,7 +962,7 @@ export default function App() {
                       <p className="font-extrabold text-xs sm:text-sm leading-tight block">{tab.label}</p>
                       <p className={`text-[10px] mt-1.5 leading-snug font-normal ${isActive ? 'text-blue-100' : 'text-gray-450'}`}>{tab.desc}</p>
                     </div>
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
@@ -1299,7 +1377,10 @@ export default function App() {
 
                 {/* Dropdown Selection for Degree Level */}
                 <div className="space-y-2.5">
-                  <label className={`block text-xs font-bold text-gray-400 ${textAlignment}`}>{t.selectDegree}</label>
+                  <div className={`flex items-center gap-1.5 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                    <label className={`block text-xs font-bold text-gray-400 ${textAlignment}`}>{t.selectDegree}</label>
+                    <InfoTooltip content={DEGREE_TOOLTIP_CONTENT} currentLang={currentLang} isRtl={isRtl} />
+                  </div>
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       { id: 'bachelor', label: t.pricing[0].title },
@@ -1321,7 +1402,10 @@ export default function App() {
                 {/* Switch for Quran Memorizer Discount */}
                 <div className={`flex items-center justify-between p-4 bg-slate-950/40 rounded-2xl border border-slate-800/80 gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
                   <div className={textAlignment}>
-                    <span className="text-xs sm:text-sm font-extrabold text-white block">{t.isMemorizer}</span>
+                    <div className={`flex items-center gap-1.5 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <span className="text-xs sm:text-sm font-extrabold text-white block">{t.isMemorizer}</span>
+                      <InfoTooltip content={QURAN_TOOLTIP_CONTENT} currentLang={currentLang} isRtl={isRtl} />
+                    </div>
                     <span className="text-[10px] sm:text-xs text-gray-405 mt-1 font-semibold block">{t.isMemorizerDesc}</span>
                   </div>
                   <button
@@ -1336,7 +1420,10 @@ export default function App() {
                 {/* Extra Option for shipping certified documents */}
                 <div className={`flex items-center justify-between p-4 bg-slate-950/40 rounded-2xl border border-slate-800/80 gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
                   <div className={textAlignment}>
-                    <span className="text-xs sm:text-sm font-extrabold text-white block">{t.optionalShipping}</span>
+                    <div className={`flex items-center gap-1.5 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <span className="text-xs sm:text-sm font-extrabold text-white block">{t.optionalShipping}</span>
+                      <InfoTooltip content={SHIPPING_TOOLTIP_CONTENT} currentLang={currentLang} isRtl={isRtl} />
+                    </div>
                     <span className="text-[10px] sm:text-xs text-gray-405 mt-1 font-semibold block">{t.optionalShippingDesc}</span>
                   </div>
                   <button
@@ -1351,7 +1438,10 @@ export default function App() {
                 {/* Extra Option for private supervising tutor support */}
                 <div className={`flex items-center justify-between p-4 bg-slate-950/40 rounded-2xl border border-slate-800/80 gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
                   <div className={textAlignment}>
-                    <span className="text-xs sm:text-sm font-extrabold text-white block">{t.optionalTutor}</span>
+                    <div className={`flex items-center gap-1.5 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                      <span className="text-xs sm:text-sm font-extrabold text-white block">{t.optionalTutor}</span>
+                      <InfoTooltip content={SUPPORT_TOOLTIP_CONTENT} currentLang={currentLang} isRtl={isRtl} />
+                    </div>
                     <span className="text-[10px] sm:text-xs text-gray-405 mt-1 font-semibold block">{t.optionalTutorDesc}</span>
                   </div>
                   <button
