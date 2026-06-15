@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Menu, 
   X, 
@@ -28,14 +28,41 @@ import {
   Tv,
   ShieldCheck,
   Sparkles,
-  Laptop
+  Laptop,
+  Sun,
+  Moon,
+  Eye,
+  Layers,
+  MapPin
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+
+import { MapHoverTooltip } from './components/MapHoverTooltip';
 
 import logoUrl from './assets/images/university_logo_1781475046944.jpg';
-import directorUrl from './assets/images/regional_director_prof_1781476169655.jpg';
+import directorUrl from './assets/images/director_profile_new_1781487073997.jpg';
+import repTurkeyUrl from './assets/images/rep_turkey_1781487089023.jpg';
+import repKsaUrl from './assets/images/rep_ksa_1781487105150.jpg';
+import repItalyUrl from './assets/images/rep_italy_1781487122078.jpg';
+import repMediaUrl from './assets/images/rep_media_1781487138931.jpg';
+
+const REP_AVATAR_IMAGES = [
+  repTurkeyUrl,
+  repKsaUrl,
+  repItalyUrl,
+  repMediaUrl
+];
+
 import { TRANSLATIONS } from './translations';
 import StudentVoices from './components/StudentVoices';
+import SyllabusPreviewModal, { SyllabusItem } from './components/SyllabusPreviewModal';
+import UniversityChatbot from './components/UniversityChatbot';
+import { AcademicNewsFeed } from './components/AcademicNewsFeed';
+import { AdmissionForm } from './components/AdmissionForm';
+import { StudentActivities } from './components/StudentActivities';
+import { AcademicEvents } from './components/AcademicEvents';
+import { DigitalLibrary } from './components/DigitalLibrary';
+import { UniversityFaqs } from './components/UniversityFaqs';
 
 const LANGUAGES = [
   { code: 'ar', label: 'العربية', flag: '🇸🇦' },
@@ -48,6 +75,45 @@ const LANGUAGES = [
 export default function App() {
   const [currentLang, setCurrentLang] = useState('ar');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Rotating Academic Background Images (updated each 5s)
+  const ACADEMIC_BG_IMAGES = [
+    "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1600&q=80",
+    "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1600&q=80",
+    "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1600&q=80",
+    "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=1600&q=80",
+    "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1600&q=80"
+  ];
+
+  const [currentBgIdx, setCurrentBgIdx] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentBgIdx(prev => (prev + 1) % ACADEMIC_BG_IMAGES.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Global Light/Dark Theme State using CSS variables
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+      const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return systemPreference ? 'dark' : 'light';
+    }
+    return 'light';
+  });
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   // High-Tech Interactive State variables
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,6 +128,17 @@ export default function App() {
   const [eligibilityOnline, setEligibilityOnline] = useState<'yes' | 'no'>('yes');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [selectedRepIndex, setSelectedRepIndex] = useState(0);
+
+  // Syllabus Preview states
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [selectedSyllabusItem, setSelectedSyllabusItem] = useState<SyllabusItem | null>(null);
+
+  // Enhanced Interactive World Map states
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const [mapMode, setMapMode] = useState<'pins' | 'clusters'>('pins');
+  const [hoveredNodeId, setHoveredNodeId] = useState<number | null>(null);
+  const [hoveredClusterId, setHoveredClusterId] = useState<'europe' | 'asia' | 'africa' | null>(null);
+  const [mapSearchQuery, setMapSearchQuery] = useState('');
 
   const t = TRANSLATIONS[currentLang] || TRANSLATIONS.ar;
   const isRtl = t.dir === 'rtl';
@@ -91,6 +168,70 @@ export default function App() {
     }
     return true;
   });
+
+  // Enhanced map data structures and helpers
+  const mapNodes = [
+    { id: 0, x: 490, y: 180, flag: "🇹🇷", label: "Turkey" },
+    { id: 1, x: 590, y: 300, flag: "🇸🇦", label: "KSA" },
+    { id: 2, x: 380, y: 160, flag: "🇮🇹", label: "Italy" },
+    { id: 3, x: 330, y: 110, flag: "🎥", label: "Media Hub" }
+  ];
+
+  const mapClusters = [
+    {
+      id: 'europe' as const,
+      x: 360,
+      y: 135,
+      name: currentLang === 'ar' ? 'قارة أوروبا' : 'Europe Cluster',
+      representativesCount: 2,
+      flag: "🇪🇺",
+      color: '#3b82f6',
+      repIndexes: [2, 3]
+    },
+    {
+      id: 'asia' as const,
+      x: 540,
+      y: 240,
+      name: currentLang === 'ar' ? 'آسيا والشرق الأوسط' : 'Asia & M.E. Cluster',
+      representativesCount: 2,
+      flag: "🌏",
+      color: '#10b981',
+      repIndexes: [0, 1]
+    }
+  ];
+
+  const filteredReps = t.representatives.map((rep: any, originalIdx: number) => ({
+    ...rep,
+    originalIdx
+  })).filter((rep: any) => {
+    const query = mapSearchQuery.toLowerCase().trim();
+    if (!query) return true;
+    return (
+      rep.country.toLowerCase().includes(query) ||
+      rep.name.toLowerCase().includes(query) ||
+      rep.role.toLowerCase().includes(query) ||
+      rep.phone.toLowerCase().includes(query)
+    );
+  });
+
+  const getMapTransform = () => {
+    if (selectedRepIndex === null || selectedRepIndex === undefined) {
+      return 'translate(0px, 0px) scale(1)';
+    }
+    const activeNode = mapNodes[selectedRepIndex];
+    if (!activeNode) return 'translate(0px, 0px) scale(1)';
+    
+    // In cluster mode, we do NOT zoom in on country pins
+    if (mapMode === 'clusters') {
+      return 'translate(0px, 0px) scale(1)';
+    }
+
+    // Centering formula: center of 800x420 is (400, 210)
+    const scale = 1.35;
+    const dx = 400 - activeNode.x * scale;
+    const dy = 210 - activeNode.y * scale;
+    return `translate(${dx}px, ${dy}px) scale(${scale})`;
+  };
 
   // Tuition Calculator Logic
   const priceMap = { bachelor: 1000, master: 1200, phd: 1400 };
@@ -171,9 +312,31 @@ export default function App() {
               <a href="#register" className="hover:text-primary transition-colors">{t.navRegister}</a>
             </div>
 
-            {/* Language dropdown + WhatsApp Button */}
-            <div className="hidden md:flex items-center gap-4">
-              {/* Modern Language Select Dropdown */}
+            {/* Action Buttons (Theme Toggle + unified Language Dropdown + Desktop call-to-action) */}
+            <div className="flex items-center gap-2.5 sm:gap-3.5">
+              {/* Theme Toggle Button */}
+              <button
+                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                className="flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm cursor-pointer p-0"
+                title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+                aria-label="Toggle Theme"
+              >
+                <motion.div
+                  key={theme}
+                  initial={{ rotate: theme === 'light' ? 90 : -90, scale: 0.5, opacity: 0 }}
+                  animate={{ rotate: 0, scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
+                  className="flex items-center justify-center w-full h-full"
+                >
+                  {theme === 'light' ? (
+                    <Moon className="w-4.5 h-4.5 text-slate-700 -rotate-12" />
+                  ) : (
+                    <Sun className="w-4.5 h-4.5 text-amber-500" />
+                  )}
+                </motion.div>
+              </button>
+
+              {/* Modern Language Select Dropdown - ONE AND ONLY ONE in the navigation */}
               <div className="relative group">
                 <button className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-gray-700 bg-white text-xs font-bold hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm">
                   <Globe className="w-4 h-4 text-primary" />
@@ -185,7 +348,7 @@ export default function App() {
                     <button 
                       key={lang.code}
                       onClick={() => setCurrentLang(lang.code)}
-                      className={`w-full text-start px-4 py-2 text-xs hover:bg-blue-50 hover:text-primary transition-colors flex items-center gap-2 ${currentLang === lang.code ? 'font-black bg-blue-50/50 text-primary' : 'text-gray-700 font-medium'}`}
+                      className={`w-full text-start px-4 py-2 text-xs hover:bg-primary/10 hover:text-primary transition-colors flex items-center gap-2 ${currentLang === lang.code ? 'font-black bg-primary/8 text-primary' : 'text-gray-750 font-medium'}`}
                     >
                       <span className="text-sm filter drop-shadow-sm">{lang.flag}</span>
                       <span>{lang.label}</span>
@@ -194,34 +357,23 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Desktop WhatsApp Contact Us Button */}
               <a 
                 href="https://wa.me/393518530537" 
                 target="_blank"
                 rel="noreferrer"
-                className="bg-primary text-white text-xs font-bold px-4 py-2.5 rounded-full hover:bg-blue-900 transition shadow-md hover:shadow-lg flex items-center gap-2"
+                className="hidden lg:flex bg-primary text-white text-xs font-bold px-4 py-2.5 rounded-full hover:opacity-90 transition shadow-md hover:shadow-lg items-center gap-2"
               >
                 <MessageCircle className="w-4 h-4" />
                 {t.navContactUs}
               </a>
-            </div>
 
-            {/* Mobile Actions (Menu Toggle + Language Select) */}
-            <div className="flex lg:hidden items-center gap-3">
-              {/* Simple inline flags switcher for mobile */}
-              <div className="flex gap-1.5 bg-gray-50 p-1 rounded-lg border border-gray-100">
-                {LANGUAGES.map(lang => (
-                  <button
-                    key={lang.code}
-                    onClick={() => setCurrentLang(lang.code)}
-                    className={`w-7 h-7 flex items-center justify-center rounded-md transition-all text-sm ${currentLang === lang.code ? 'bg-white shadow-sm border border-gray-200 filter scale-110' : 'opacity-60 hover:opacity-100'}`}
-                    title={lang.label}
-                  >
-                    {lang.flag}
-                  </button>
-                ))}
-              </div>
-
-              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-gray-700 hover:text-primary bg-gray-50 rounded-lg border border-gray-100">
+              {/* Mobile Menu Button toggle */}
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)} 
+                className="lg:hidden p-2 text-gray-700 hover:text-primary bg-gray-50 rounded-lg border border-gray-100"
+                aria-label="Toggle Menu"
+              >
                 {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
@@ -252,8 +404,13 @@ export default function App() {
         )}
       </nav>
 
+      {/* Academic News Feed with Search Grounding beneath the navbar */}
+      <div className="mt-20">
+        <AcademicNewsFeed currentLang={currentLang} isRtl={isRtl} />
+      </div>
+
       {/* Dynamic Infinite Marquee Announcement Ticker */}
-      <div className="mt-20 bg-gradient-to-r from-primary via-blue-900 to-indigo-950 text-white text-[11px] sm:text-xs py-3.5 px-4 shadow-sm border-b border-blue-800 relative z-30 select-none overflow-hidden">
+      <div className="mt-0 bg-gradient-to-r from-primary via-blue-900 to-indigo-950 text-white text-[11px] sm:text-xs py-3.5 px-4 shadow-sm border-b border-blue-800 relative z-30 select-none overflow-hidden">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className={`flex items-center gap-1.5 flex-shrink-0 bg-amber-500/15 px-3 py-1 rounded-full text-amber-400 font-extrabold animate-pulse border border-amber-500/20 ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}>
             <Sparkles className="w-3.5 h-3.5" />
@@ -285,7 +442,21 @@ export default function App() {
       </div>
 
       {/* Hero Section */}
-      <section className="relative pt-12 pb-20 lg:pt-16 lg:pb-32 overflow-hidden bg-gradient-to-b from-blue-50/40 via-white to-transparent">
+      <section className="relative pt-12 pb-20 lg:pt-16 lg:pb-32 overflow-hidden min-h-[500px]">
+        {/* Dynamic cross-fading academic images backdrop updated each 5s */}
+        <div className="absolute inset-0 -z-20 overflow-hidden">
+          {ACADEMIC_BG_IMAGES.map((img, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: currentBgIdx === idx ? 0.08 : 0 }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: `url(${img})` }}
+            />
+          ))}
+        </div>
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-blue-50/70 via-white/80 to-white"></div>
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,_emerald-50/20,_transparent_40%)]"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -297,7 +468,7 @@ export default function App() {
               transition={{ duration: 0.8 }}
               className={textAlignment}
             >
-              <span className="inline-block px-4 py-2 rounded-full bg-blue-50 text-primary font-bold text-xs sm:text-sm mb-6 border border-blue-100/65 shadow-sm leading-relaxed">
+              <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-xs sm:text-sm mb-6 border border-primary/20 shadow-sm leading-relaxed">
                 {t.heroBadge}
               </span>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-950 leading-tight mb-6">
@@ -308,7 +479,7 @@ export default function App() {
                 {t.heroDesc}
               </p>
               <div className={`flex flex-wrap gap-4 ${isRtl ? 'justify-start' : 'justify-start'}`}>
-                <a href="#register" className="bg-primary text-white px-6 py-4 rounded-xl font-bold text-sm hover:bg-blue-900 transition flex items-center gap-2 shadow-lg shadow-primary/20">
+                <a href="#register" className="bg-primary text-white px-6 py-4 rounded-xl font-bold text-sm hover:opacity-90 transition flex items-center gap-2 shadow-lg shadow-primary/20">
                   <Calendar className="w-4 h-4" />
                   {t.heroCtaRegister}
                 </a>
@@ -338,7 +509,7 @@ export default function App() {
               {/* Dynamic Overlay Floating Badge */}
               <div className={`absolute -bottom-6 ${isRtl ? '-left-4' : '-right-4'} bg-white p-5 rounded-2xl shadow-xl hidden md:block border border-gray-100`}>
                 <div className={`flex items-center gap-4 ${flexNavDirection}`}>
-                  <div className="bg-blue-100 p-3 rounded-full text-primary">
+                  <div className="bg-primary/15 p-3 rounded-full text-primary">
                     <Calendar className="w-6 h-6" />
                   </div>
                   <div className={textAlignment}>
@@ -372,7 +543,7 @@ export default function App() {
                 variants={fadeIn}
                 className={`p-6 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 group ${textAlignment}`}
               >
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-primary/15 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
                   {FEATURE_ICONS[idx % FEATURE_ICONS.length]}
                 </div>
                 <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3">{feat.title}</h3>
@@ -385,9 +556,9 @@ export default function App() {
 
       {/* Virtual Campus Showcase Section */}
       <section id="campus" className="py-24 bg-gradient-to-b from-white to-slate-50 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_blue-50/15,_transparent_40%)] -z-10"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--theme-primary)/10,_transparent_40%)] -z-10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16 relative">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-blue-50 text-primary font-bold text-xs mb-4 shadow-sm">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-xs mb-4 shadow-sm">
             {currentLang === 'ar' ? 'البوابة الذكية المتقدمة' : currentLang === 'it' ? 'PORTALE ACADEMY' : currentLang === 'fr' ? 'CAMPUS SMART' : currentLang === 'de' ? 'SMART PORTAL' : 'SMART CAMPUS'}
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-950 mb-4 tracking-tight">
@@ -414,9 +585,9 @@ export default function App() {
                   <button
                     key={tab.id}
                     onClick={() => setCampusTab(tab.id as any)}
-                    className={`p-5 rounded-2xl border text-start transition-all duration-300 relative overflow-hidden flex gap-4 ${isRtl ? 'flex-row-reverse' : 'flex-row'} ${isActive ? 'bg-primary border-primary text-white shadow-xl shadow-primary/20 scale-[1.02]' : 'bg-white border-gray-100 text-gray-700 hover:bg-gray-50 hover:border-gray-200'}`}
+                    className={`p-5 rounded-2xl border text-start transition-all duration-300 relative overflow-hidden flex gap-4 ${isRtl ? 'flex-row-reverse' : 'flex-row'} ${isActive ? 'bg-primary border-primary text-white shadow-xl shadow-primary/20 scale-[1.02]' : 'bg-white border-gray-150 text-gray-700 hover:bg-slate-50 hover:border-gray-200'}`}
                   >
-                    <div className={`p-2.5 rounded-xl flex items-center justify-center h-10 w-10 flex-shrink-0 ${isActive ? 'bg-white/20 text-white' : 'bg-blue-50 text-primary'}`}>
+                    <div className={`p-2.5 rounded-xl flex items-center justify-center h-10 w-10 flex-shrink-0 ${isActive ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'}`}>
                       {tab.icon}
                     </div>
                     <div className={textAlignment}>
@@ -507,7 +678,36 @@ export default function App() {
                             <h4 className="text-xs sm:text-sm font-extrabold text-white mt-2 block leading-snug">{item.title}</h4>
                             <p className="text-[11px] text-gray-400 mt-1 font-mono">{item.size}</p>
                           </div>
-                          <button className="flex-shrink-0 w-9 h-9 rounded-xl bg-slate-850 hover:bg-primary transition text-white flex items-center justify-center font-bold text-xs">↓</button>
+                          
+                          <div className={`flex gap-2 ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}>
+                            {/* Preview Trigger */}
+                            <button
+                              onClick={() => {
+                                setSelectedSyllabusItem({
+                                  id: id.toString(),
+                                  title: item.title,
+                                  category: item.category,
+                                  size: item.size
+                                });
+                                setIsPreviewOpen(true);
+                              }}
+                              className="w-9 h-9 rounded-xl bg-slate-850 hover:bg-amber-500/20 hover:text-amber-400 transition text-slate-400 hover:border-amber-400/25 border border-transparent flex items-center justify-center text-xs cursor-pointer"
+                              title={currentLang === 'ar' ? 'معاينة المنهج التفاعلي' : 'Preview Syllabus'}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+
+                            {/* Download Action */}
+                            <button 
+                              onClick={() => {
+                                alert(currentLang === 'ar' ? `🎉 جاري أولًا تشغيل محاكي تنزيل ملف: ${item.title}` : `🎉 Initiating virtual download for: ${item.title}`);
+                              }}
+                              className="w-9 h-9 rounded-xl bg-slate-850 hover:bg-primary transition text-white flex items-center justify-center font-bold text-xs cursor-pointer"
+                              title={currentLang === 'ar' ? 'تحميل مباشر' : 'Direct Download'}
+                            >
+                              ↓
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -579,7 +779,7 @@ export default function App() {
                   <span>{currentLang === 'ar' ? 'التعلم المستمر بلمسة ذكية' : 'Flexible Digital Academic Journey'}</span>
                   <a 
                     href="#register"
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold hover:shadow-lg transition-transform hover:scale-[1.03]"
+                    className="px-4 py-2 bg-primary hover:opacity-90 text-white rounded-lg font-bold hover:shadow-lg transition-transform hover:scale-[1.03]"
                   >
                     {currentLang === 'ar' ? 'التحق بالجامعة الرقمية' : 'Join E-Campus Now'}
                   </a>
@@ -591,6 +791,8 @@ export default function App() {
           </div>
         </div>
       </section>
+
+      <AcademicEvents currentLang={currentLang} />
 
       {/* Programs Section */}
       <section id="programs" className="py-20 bg-slate-50 border-t border-b border-slate-100">
@@ -675,7 +877,7 @@ export default function App() {
                       </thead>
                       <tbody className="divide-y divide-gray-100 text-xs sm:text-sm">
                         {filteredPrograms.map((prog, idx) => (
-                          <tr key={idx} className="hover:bg-blue-50/50 transition-colors">
+                          <tr key={idx} className="hover:bg-primary/8 transition-colors">
                             <td className="px-6 py-5.5 font-extrabold text-primary whitespace-nowrap">{prog.college}</td>
                             <td className="px-6 py-5.5 text-gray-800 font-semibold">{prog.degrees}</td>
                             <td className="px-6 py-5.5 text-gray-600 leading-relaxed font-normal">{prog.specialties}</td>
@@ -695,6 +897,8 @@ export default function App() {
           </div>
         </div>
       </section>
+
+      <DigitalLibrary currentLang={currentLang} />
 
       {/* Pricing Section */}
       <section id="pricing" className="py-20 bg-white">
@@ -752,7 +956,7 @@ export default function App() {
               {/* Left Column Controls */}
               <div className="lg:col-span-7 space-y-6">
                 <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                  <div className="p-3 rounded-full bg-blue-500/10 text-blue-400">
+                  <div className="p-3 rounded-full bg-primary/20 text-primary">
                     <Calculator className="w-6 h-6" />
                   </div>
                   <div className={textAlignment}>
@@ -776,7 +980,7 @@ export default function App() {
                         key={deg.id}
                         type="button"
                         onClick={() => setCalcDegree(deg.id as any)}
-                        className={`py-3.5 px-3 rounded-xl text-xs font-bold transition-all border ${calcDegree === deg.id ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/15' : 'bg-slate-950/50 border-slate-800 text-gray-300 hover:bg-slate-900 hover:text-white'}`}
+                        className={`py-3.5 px-3 rounded-xl text-xs font-bold transition-all border ${calcDegree === deg.id ? 'bg-primary border-primary text-white shadow-md shadow-primary/15' : 'bg-slate-950/50 border-slate-800 text-gray-300 hover:bg-slate-900 hover:text-white'}`}
                       >
                         {deg.label}
                       </button>
@@ -808,7 +1012,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setCalcHardcopy(!calcHardcopy)}
-                    className={`w-14 h-8 rounded-full transition-colors relative cursor-pointer ${calcHardcopy ? 'bg-blue-500' : 'bg-slate-800'}`}
+                    className={`w-14 h-8 rounded-full transition-colors relative cursor-pointer ${calcHardcopy ? 'bg-primary' : 'bg-slate-800'}`}
                   >
                     <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-sm transition-all ${isRtl ? (calcHardcopy ? 'left-1' : 'right-1') : (calcHardcopy ? 'right-1' : 'left-1')}`}></div>
                   </button>
@@ -823,7 +1027,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setCalcSupport(!calcSupport)}
-                    className={`w-14 h-8 rounded-full transition-colors relative cursor-pointer ${calcSupport ? 'bg-blue-500' : 'bg-slate-800'}`}
+                    className={`w-14 h-8 rounded-full transition-colors relative cursor-pointer ${calcSupport ? 'bg-primary' : 'bg-slate-800'}`}
                   >
                     <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-sm transition-all ${isRtl ? (calcSupport ? 'left-1' : 'right-1') : (calcSupport ? 'right-1' : 'left-1')}`}></div>
                   </button>
@@ -890,13 +1094,15 @@ export default function App() {
         </div>
       </section>
 
+      <StudentActivities currentLang={currentLang} />
+
       {/* International Representatives Section - Interactive World Map */}
       <section id="representatives" className="py-24 bg-slate-50 border-t border-b border-slate-100 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100/20 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-100/20 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/8 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/8 rounded-full blur-3xl -z-10"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16 relative">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-blue-100 text-primary font-bold text-xs mb-4 shadow-sm">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/15 text-primary font-bold text-xs mb-4 shadow-sm">
             {t.repsSectionBadge}
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-950 mb-4 max-w-3xl mx-auto leading-snug">
@@ -914,16 +1120,87 @@ export default function App() {
             <div className="lg:col-span-7 flex flex-col justify-between bg-white rounded-3xl p-5 sm:p-7 border border-gray-150 shadow-sm relative overflow-hidden min-h-[420px]">
               
               {/* Map Header Instructions */}
-              <div className={`flex justify-between items-center mb-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
+              <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-4 border-b border-gray-100 ${isRtl ? 'sm:flex-row-reverse' : ''}`}>
                 <div className={textAlignment}>
                   <p className="text-[10px] text-gray-400 uppercase font-black tracking-wider">
                     {currentLang === 'ar' ? 'الخريطة التفاعلية للمكاتب الإقليمية' : 'Interactive Regional Map'}
                   </p>
-                  <p className="text-xs sm:text-sm font-bold text-primary mt-0.5">
-                    {currentLang === 'ar' ? '👈 انقر على الدولة / النقطة لعرض الممثل الأكاديمي المعتمد' : '👈 Click on a country pin to inspect official academic representatives'}
+                  <p className="text-xs font-bold text-gray-650 mt-0.5">
+                    {mapMode === 'pins' 
+                      ? (currentLang === 'ar' ? '📍 تصفح مكاتب التمثيل المعتمدة قاريًا ودوليًا' : '📍 Browse officially active representative offices by country.')
+                      : (currentLang === 'ar' ? '📊 نظرة قارية عامة على توزيع خبراء وممثلي الجامعة' : '📊 Continental density and counts of university representatives.')
+                    }
                   </p>
                 </div>
-                <Globe className="w-5 h-5 text-blue-500 animate-spin flex-shrink-0" style={{ animationDuration: '10s' }} />
+                
+                {/* Advanced Segmented Pills control */}
+                <div className="flex bg-slate-100/80 p-1 rounded-2xl border border-gray-200/60 shadow-inner select-none">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMapMode('pins');
+                      setHoveredClusterId(null);
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${mapMode === 'pins' ? 'bg-primary text-white shadow-md shadow-primary/10' : 'text-gray-550 hover:text-gray-800 hover:bg-white/40'}`}
+                  >
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>{currentLang === 'ar' ? 'مواقع المكاتب' : 'Pin Locations'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMapMode('clusters');
+                      setHoveredNodeId(null);
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer ${mapMode === 'clusters' ? 'bg-amber-600 text-white shadow-md shadow-amber-600/10' : 'text-gray-550 hover:text-gray-800 hover:bg-white/40'}`}
+                  >
+                    <Layers className="w-3.5 h-3.5" />
+                    <span>{currentLang === 'ar' ? 'التوزيع القاري' : 'Continent Clusters'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Dynamic Interactive Search Bar */}
+              <div className="mb-4 relative w-full">
+                <div className={`relative flex items-center w-full bg-slate-50 border border-gray-200 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 rounded-2xl px-4 py-2.5 transition-all ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  <Search className={`w-4 h-4 text-gray-400 flex-shrink-0 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                  <input
+                    type="text"
+                    value={mapSearchQuery}
+                    onChange={(e) => {
+                      const query = e.target.value;
+                      setMapSearchQuery(query);
+                      
+                      if (query) {
+                        const downcaseQuery = query.toLowerCase().trim();
+                        const matchingIdx = t.representatives.findIndex((rep: any) => 
+                          rep.country.toLowerCase().includes(downcaseQuery) ||
+                          rep.name.toLowerCase().includes(downcaseQuery) ||
+                          rep.role.toLowerCase().includes(downcaseQuery) ||
+                          rep.phone.toLowerCase().includes(downcaseQuery)
+                        );
+                        if (matchingIdx !== -1) {
+                          setSelectedRepIndex(matchingIdx);
+                        }
+                      }
+                    }}
+                    placeholder={
+                      currentLang === 'ar' 
+                        ? "🔍 ابحث بالدولة، الممثل، أو الهاتف لتكبير الخريطة..." 
+                        : "🔍 Search by country, representative, or phone..."
+                    }
+                    className="w-full bg-transparent border-none text-xs text-gray-800 font-semibold focus:outline-none focus:ring-0 placeholder-gray-400"
+                  />
+                  {mapSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setMapSearchQuery('')}
+                      className="text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Vector SVG Map Container */}
@@ -936,138 +1213,292 @@ export default function App() {
                 <div className="absolute inset-y-0 left-1/2 border-r border-gray-200/40 pointer-events-none"></div>
                 <div className="absolute inset-y-0 left-3/4 border-r border-gray-200/40 pointer-events-none"></div>
 
-                <svg 
-                  viewBox="0 0 800 420" 
-                  className="w-full h-auto select-none opacity-90 transition-opacity hover:opacity-100 z-10"
-                  style={{ maxHeight: '350px' }}
-                >
-                  {/* Lat/Long Grid lines */}
-                  <g stroke="#94a3b8" strokeOpacity="0.08" strokeWidth="1" strokeDasharray="3 3">
-                    <line x1="0" y1="100" x2="800" y2="100" />
-                    <line x1="0" y1="210" x2="800" y2="210" />
-                    <line x1="0" y1="320" x2="800" y2="320" />
-                    <line x1="200" y1="0" x2="200" y2="420" />
-                    <line x1="400" y1="0" x2="400" y2="420" />
-                    <line x1="600" y1="0" x2="600" y2="420" />
-                  </g>
+                <div ref={mapContainerRef} className="relative w-full h-full flex items-center justify-center">
+                  <svg 
+                    viewBox="0 0 800 420" 
+                    className="w-full h-auto select-none opacity-90 transition-opacity hover:opacity-100 z-10"
+                    style={{ maxHeight: '350px' }}
+                  >
+                    {/* Lat/Long Grid lines */}
+                    <g stroke="#94a3b8" strokeOpacity="0.08" strokeWidth="1" strokeDasharray="3 3">
+                      <line x1="0" y1="100" x2="800" y2="100" />
+                      <line x1="0" y1="210" x2="800" y2="210" />
+                      <line x1="0" y1="320" x2="800" y2="320" />
+                      <line x1="200" y1="0" x2="200" y2="420" />
+                      <line x1="400" y1="0" x2="400" y2="420" />
+                      <line x1="600" y1="0" x2="600" y2="420" />
+                    </g>
 
-                  {/* Stylized Visual Continent outlines */}
-                  {/* North America */}
-                  <path d="M 10,80 Q 80,100 120,140 T 90,260 T 130,300 Z" fill="#e2e8f0" fillOpacity="0.55" stroke="#cbd5e1" strokeWidth="0.8" />
-                  
-                  {/* South America */}
-                  <path d="M 100,280 Q 130,320 120,380 T 100,410 T 60,350 Z" fill="#e2e8f0" fillOpacity="0.55" stroke="#cbd5e1" strokeWidth="0.8" />
-                  
-                  {/* Europe & Asia Outline */}
-                  <path 
-                    d="M 230,120 C 260,80 340,70 420,80 C 470,60 520,70 600,80 C 660,90 730,110 770,140 C 790,170 790,220 750,250 C 700,280 620,310 560,300 C 500,250 440,260 400,220 C 350,190 280,180 230,120 Z" 
-                    fill="#e2e8f0" 
-                    fillOpacity="0.65" 
-                    stroke="#cbd5e1" 
-                    strokeWidth="0.9" 
-                  />
+                    {/* Transform Group: Centers and zooms in on selected country dynamically */}
+                    <g style={{ transform: getMapTransform(), transformOrigin: 'center', transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+                      
+                      {/* Stylized Visual Continent outlines */}
+                      {/* North America */}
+                      <path d="M 10,80 Q 80,100 120,140 T 90,260 T 130,300 Z" fill="#e2e8f0" fillOpacity="0.55" stroke="#cbd5e1" strokeWidth="0.8" />
+                      
+                      {/* South America */}
+                      <path d="M 100,280 Q 130,320 120,380 T 100,410 T 60,350 Z" fill="#e2e8f0" fillOpacity="0.55" stroke="#cbd5e1" strokeWidth="0.8" />
+                      
+                      {/* Europe & Asia Outline */}
+                      <path 
+                        d="M 230,120 C 260,80 340,70 420,80 C 470,60 520,70 600,80 C 660,90 730,110 770,140 C 790,170 790,220 750,250 C 700,280 620,310 560,300 C 500,250 440,260 400,220 C 350,190 280,180 230,120 Z" 
+                        fill="#e2e8f0" 
+                        fillOpacity="0.65" 
+                        stroke="#cbd5e1" 
+                        strokeWidth="0.9" 
+                      />
 
-                  {/* Africa Outline */}
-                  <path 
-                    d="M 285,250 C 340,230 380,240 400,280 C 420,310 420,350 400,380 C 375,410 340,410 320,380 C 290,340 270,300 285,250 Z" 
-                    fill="#e2e8f0" 
-                    fillOpacity="0.6" 
-                    stroke="#cbd5e1" 
-                    strokeWidth="0.8" 
-                  />
+                      {/* Africa Outline */}
+                      <path 
+                        d="M 285,250 C 340,230 380,240 400,280 C 420,310 420,350 400,380 C 375,410 340,410 320,380 C 290,340 270,300 285,250 Z" 
+                        fill="#e2e8f0" 
+                        fillOpacity="0.6" 
+                        stroke="#cbd5e1" 
+                        strokeWidth="0.8" 
+                      />
 
-                  {/* Australia Outline */}
-                  <path d="M 680,310 Q 720,310 740,330 T 680,380 Z" fill="#e2e8f0" fillOpacity="0.5" stroke="#cbd5e1" strokeWidth="0.8" />
+                      {/* Australia Outline */}
+                      <path d="M 680,310 Q 720,310 740,330 T 680,380 Z" fill="#e2e8f0" fillOpacity="0.5" stroke="#cbd5e1" strokeWidth="0.8" />
 
-                  {/* Connective Link lines from active node to Brussels Hub */}
-                  <g opacity="0.45">
-                    <line 
-                      x1="330" y1="110" 
-                      x2={selectedRepIndex === 0 ? 490 : selectedRepIndex === 1 ? 590 : selectedRepIndex === 2 ? 380 : 330} 
-                      y2={selectedRepIndex === 0 ? 180 : selectedRepIndex === 1 ? 300 : selectedRepIndex === 2 ? 160 : 110} 
-                      stroke="#3b82f6" 
-                      strokeWidth="1.5" 
-                      strokeDasharray="4 4" 
-                    />
-                  </g>
+                      {/* Connective Link lines from active node to Brussels Hub */}
+                      {mapMode === 'pins' && (
+                        <g opacity="0.45">
+                          <line 
+                            x1="330" y1="110" 
+                            x2={selectedRepIndex === 0 ? 490 : selectedRepIndex === 1 ? 590 : selectedRepIndex === 2 ? 380 : 330} 
+                            y2={selectedRepIndex === 0 ? 180 : selectedRepIndex === 1 ? 300 : selectedRepIndex === 2 ? 160 : 110} 
+                            stroke="#3b82f6" 
+                            strokeWidth="1.5" 
+                            strokeDasharray="4 4" 
+                          />
+                        </g>
+                      )}
 
-                  {/* Hotspots Interactive pins */}
-                  {[
-                    { id: 0, x: 490, y: 180, flag: "🇹🇷", label: "Turkey" },
-                    { id: 1, x: 590, y: 300, flag: "🇸🇦", label: "KSA" },
-                    { id: 2, x: 380, y: 160, flag: "🇮🇹", label: "Italy" },
-                    { id: 3, x: 330, y: 110, flag: "🎥", label: "Media Hub" }
-                  ].map((node) => {
-                    const isSelected = selectedRepIndex === node.id;
-                    const rSize = isSelected ? 18 : 11;
-                    
-                    return (
-                      <g 
-                        key={node.id} 
-                        className="cursor-pointer group/node"
-                        onClick={() => setSelectedRepIndex(node.id)}
-                      >
-                        {/* Interactive invisible clicking buffer area */}
-                        <circle cx={node.x} cy={node.y} r="25" fill="transparent" />
+                      {/* Hotspots Interactive pins */}
+                      {mapMode === 'pins' && mapNodes.map((node) => {
+                        const isSelected = selectedRepIndex === node.id;
+                        const rSize = isSelected ? 18 : 11;
+                        
+                        return (
+                          <g 
+                            key={node.id} 
+                            className="cursor-pointer group/node"
+                            onClick={() => setSelectedRepIndex(node.id)}
+                            onMouseEnter={() => setHoveredNodeId(node.id)}
+                            onMouseLeave={() => setHoveredNodeId(null)}
+                          >
+                            {/* Interactive invisible clicking buffer area */}
+                            <circle cx={node.x} cy={node.y} r="25" fill="transparent" />
 
-                        {/* Pulsing Concentric Outer Ring */}
-                        <circle 
-                          cx={node.x} 
-                          cy={node.y} 
-                          r={rSize + 14} 
-                          fill="none" 
-                          stroke={node.id === 3 ? "#3b82f6" : node.id === 1 ? "#10b981" : "#ef4444"} 
-                          strokeWidth="1.5"
-                          opacity={isSelected ? 0.8 : 0}
-                          className={isSelected ? "animate-pulse" : ""}
-                        />
+                            {/* Pulsing Concentric Outer Ring */}
+                            <circle 
+                              cx={node.x} 
+                              cy={node.y} 
+                              r={rSize + 14} 
+                              fill="none" 
+                              stroke={node.id === 3 ? "#3b82f6" : node.id === 1 ? "#10b981" : "#ef4444"} 
+                              strokeWidth="1.5"
+                              opacity={isSelected ? 0.8 : 0}
+                              className={isSelected ? "animate-pulse" : ""}
+                            />
 
-                        {/* Ping radar effect circle */}
-                        <circle 
-                          cx={node.x} 
-                          cy={node.y} 
-                          r={rSize + 8} 
-                          fill="transparent" 
-                          stroke={node.id === 3 ? "#3b82f6" : node.id === 1 ? "#10b981" : "#f59e0b"} 
-                          strokeWidth="2"
-                          opacity={isSelected ? 0.6 : 0.2}
-                          className="animate-ping origin-center"
-                          style={{ animationDuration: isSelected ? '1.8s' : '3s' }}
-                        />
+                            {/* Ping radar effect circle */}
+                            <circle 
+                              cx={node.x} 
+                              cy={node.y} 
+                              r={rSize + 8} 
+                              fill="transparent" 
+                              stroke={node.id === 3 ? "#3b82f6" : node.id === 1 ? "#10b981" : "#f59e0b"} 
+                              strokeWidth="2"
+                              opacity={isSelected ? 0.6 : 0.2}
+                              className="animate-ping origin-center"
+                              style={{ animationDuration: isSelected ? '1.8s' : '3s' }}
+                            />
 
-                        {/* Solid Base Ring Core */}
-                        <circle 
-                          cx={node.x} 
-                          cy={node.y} 
-                          r={rSize} 
-                          fill={isSelected ? "#1e3a8a" : "#ffffff"} 
-                          stroke={isSelected ? "#f59e0b" : "#94a3b8"} 
-                          strokeWidth="2" 
-                          className="transition-all duration-300 drop-shadow-md group-hover/node:fill-slate-50"
-                        />
+                            {/* Solid Base Ring Core */}
+                            <circle 
+                              cx={node.x} 
+                              cy={node.y} 
+                              r={rSize} 
+                              fill={isSelected ? "#1e3a8a" : "#ffffff"} 
+                              stroke={isSelected ? "#f59e0b" : "#94a3b8"} 
+                              strokeWidth="2" 
+                              className="transition-all duration-300 drop-shadow-md group-hover/node:fill-slate-50"
+                            />
 
-                        {/* Flag text precisely overlayed */}
-                        <text 
-                          x={node.x} 
-                          y={node.y + 4.5} 
-                          textAnchor="middle" 
-                          fontSize="12" 
-                          className="pointer-events-none select-none filter group-hover/node:scale-110 transition-transform font-bold"
-                        >
-                          {node.flag}
-                        </text>
+                            {/* Flag text precisely overlayed */}
+                            <text 
+                              x={node.x} 
+                              y={node.y + 4.5} 
+                              textAnchor="middle" 
+                              fontSize="12" 
+                              className="pointer-events-none select-none filter group-hover/node:scale-110 transition-transform font-bold"
+                            >
+                              {node.flag}
+                            </text>
 
-                        {/* Indicator glow beacon */}
-                        {isSelected && (
-                          <g className="pointer-events-none">
-                            <line x1={node.x} y1={node.y - rSize - 4} x2={node.x} y2={node.y - rSize - 16} stroke="#3b82f6" strokeWidth="2" />
-                            <circle cx={node.x} cy={node.y - rSize - 16} r="4.5" fill="#f59e0b" className="animate-pulse" />
+                            {/* Indicator glow beacon */}
+                            {isSelected && (
+                              <g className="pointer-events-none">
+                                <line x1={node.x} y1={node.y - rSize - 4} x2={node.x} y2={node.y - rSize - 16} stroke="#3b82f6" strokeWidth="2" />
+                                <circle cx={node.x} cy={node.y - rSize - 16} r="4.5" fill="#f59e0b" className="animate-pulse" />
+                              </g>
+                            )}
                           </g>
-                        )}
-                      </g>
-                    );
-                  })}
-                </svg>
+                        );
+                      })}
+
+                      {/* Continent Clusters representation */}
+                      {mapMode === 'clusters' && mapClusters.map((cls) => {
+                        const isHovered = hoveredClusterId === cls.id;
+                        const bubbleSize = isHovered ? 40 : 34;
+                        
+                        return (
+                          <g 
+                            key={cls.id}
+                            className="cursor-pointer group/cluster"
+                            onMouseEnter={() => setHoveredClusterId(cls.id)}
+                            onMouseLeave={() => setHoveredClusterId(null)}
+                            onClick={() => {
+                              // When clicking a cluster, auto-select its first representative to show detailed profile
+                              setSelectedRepIndex(cls.repIndexes[0]);
+                            }}
+                          >
+                            {/* Interactive buffer circle */}
+                            <circle cx={cls.x} cy={cls.y} r="50" fill="transparent" />
+
+                            {/* Pulsing glow under bubble */}
+                            <circle 
+                              cx={cls.x} 
+                              cy={cls.y} 
+                              r={bubbleSize + 16} 
+                              fill="transparent" 
+                              stroke={cls.color} 
+                              strokeWidth="1.5"
+                              className="animate-ping origin-center opacity-40"
+                              style={{ animationDuration: '3s' }}
+                            />
+
+                            {/* Bubble base */}
+                            <circle 
+                              cx={cls.x} 
+                              cy={cls.y} 
+                              r={bubbleSize} 
+                              fill={cls.color} 
+                              fillOpacity="0.15"
+                              stroke={cls.color} 
+                              strokeWidth="2.5"
+                              className="transition-all duration-300 group-hover/cluster:fill-opacity-25"
+                            />
+
+                            {/* Core Center Dot */}
+                            <circle 
+                              cx={cls.x} 
+                              cy={cls.y} 
+                              r="6" 
+                              fill={cls.color}
+                            />
+
+                            {/* Representative Count text */}
+                            <text 
+                              x={cls.x} 
+                              y={cls.y - (bubbleSize + 10)} 
+                              textAnchor="middle" 
+                              fontSize="11" 
+                              fontWeight="bold"
+                              fill="#1e293b"
+                              className="font-sans select-none"
+                            >
+                              ={cls.name}
+                            </text>
+
+                            <g transform={`translate(${cls.x}, ${cls.y + 4})`}>
+                              {/* Large Counter text inside the bubble */}
+                              <text 
+                                x="0" 
+                                y="0" 
+                                textAnchor="middle" 
+                                fontSize="14" 
+                                fontWeight="950" 
+                                fill="#0f172a" 
+                                className="font-mono select-none"
+                              >
+                                {cls.representativesCount}
+                              </text>
+                              <text 
+                                x="0" 
+                                y="12" 
+                                textAnchor="middle" 
+                                fontSize="7" 
+                                fontWeight="black" 
+                                fill="#475569" 
+                                className="uppercase tracking-widest select-none"
+                              >
+                                {currentLang === 'ar' ? 'ممثليْن' : 'Reps'}
+                              </text>
+                            </g>
+                          </g>
+                        );
+                      })}
+
+                    </g>
+                  </svg>
+
+                  {/* Floating Hover Tooltip for nodes on desktop screen */}
+                  <AnimatePresence>
+                    {mapMode === 'pins' && hoveredNodeId !== null && t.representatives[hoveredNodeId] && (
+                      <MapHoverTooltip 
+                        x={mapNodes[hoveredNodeId].x} 
+                        y={mapNodes[hoveredNodeId].y} 
+                        containerRef={mapContainerRef}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm filter drop-shadow">{t.representatives[hoveredNodeId].flag}</span>
+                          <span className="font-extrabold text-white text-[12px]">{t.representatives[hoveredNodeId].country}</span>
+                        </div>
+                        <div className="border-t border-slate-800 my-1 pb-1"></div>
+                        <div className="font-semibold text-gray-200">{t.representatives[hoveredNodeId].name}</div>
+                        <div className="text-[10px] text-gray-400 mt-0.5">{t.representatives[hoveredNodeId].role}</div>
+                        <div className="text-[10px] text-amber-400 font-bold mt-1.5 flex items-center gap-1 font-mono">
+                          <Phone className="w-3 h-3 text-amber-500" />
+                          <span>{t.representatives[hoveredNodeId].phone}</span>
+                        </div>
+                      </MapHoverTooltip>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Floating Hover Tooltip for clusters on desktop screen */}
+                  <AnimatePresence>
+                    {mapMode === 'clusters' && hoveredClusterId !== null && (
+                      <MapHoverTooltip 
+                        x={mapClusters.find(c => c.id === hoveredClusterId)!.x} 
+                        y={mapClusters.find(c => c.id === hoveredClusterId)!.y} 
+                        containerRef={mapContainerRef}
+                      >
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-amber-400 font-black">📊 {mapClusters.find(c => c.id === hoveredClusterId)!.name}</span>
+                        </div>
+                        <div className="border-t border-slate-800 my-1 pb-1"></div>
+                        <div className="text-[10px] text-gray-300 mb-1 font-bold">
+                          {currentLang === 'ar' ? 'الممثلون المعتمدون في هذه القارة:' : 'Certified reps in this continent:'}
+                        </div>
+                        <div className="space-y-1 mt-1 text-left">
+                          {mapClusters.find(c => c.id === hoveredClusterId)!.repIndexes.map(idx => {
+                            const r = t.representatives[idx];
+                            return (
+                              <div key={idx} className="flex items-center gap-1 text-[10px] text-gray-200">
+                                <span className="filter drop-shadow">{r.flag}</span>
+                                <span className="font-semibold">{r.country}:</span>
+                                <span className="text-gray-400 text-[9px] truncate">{r.name}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </MapHoverTooltip>
+                    )}
+                  </AnimatePresence>
+
+                </div>
 
                 {/* Technical status absolute flag */}
                 <div className={`absolute bottom-3 ${isRtl ? 'right-3' : 'left-3'} bg-slate-900/95 text-[9px] text-white py-1.5 px-3 rounded-xl border border-slate-800 font-mono flex items-center gap-2 shadow-lg`}>
@@ -1082,13 +1513,13 @@ export default function App() {
                   {currentLang === 'ar' ? 'اختر الدولة الممثلة للتواصل الفوري السريع:' : 'Quick Selection Regional Office:'}
                 </p>
                 <div className={`flex flex-wrap gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
-                  {t.representatives.map((rep, idx) => {
-                    const isSelected = selectedRepIndex === idx;
+                  {filteredReps.map((rep: any) => {
+                    const isSelected = selectedRepIndex === rep.originalIdx;
                     return (
                       <button
-                        key={idx}
+                        key={rep.originalIdx}
                         type="button"
-                        onClick={() => setSelectedRepIndex(idx)}
+                        onClick={() => setSelectedRepIndex(rep.originalIdx)}
                         className={`px-3 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all border cursor-pointer ${isSelected ? 'bg-primary text-white border-primary shadow-md shadow-primary/15 scale-[1.02]' : 'bg-slate-50 text-gray-650 border-gray-200 hover:bg-slate-100 hover:border-gray-300'}`}
                       >
                         <span className="text-sm filter drop-shadow">{rep.flag}</span>
@@ -1096,6 +1527,11 @@ export default function App() {
                       </button>
                     );
                   })}
+                  {filteredReps.length === 0 && (
+                    <p className="text-xs text-slate-400 py-1 font-semibold italic">
+                      {currentLang === 'ar' ? 'لم يتم العثور على مكاتب تمثيل لاسم البحث المقدم.' : 'No offices found matching your search term.'}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -1117,14 +1553,24 @@ export default function App() {
                   }
                 };
 
-                const nationalGradients = [
+                const nationalGradients = theme === 'dark' ? [
+                  "from-red-950/40 to-orange-950/20 border-red-900/40", 
+                  "from-emerald-950/40 to-teal-950/20 border-emerald-900/40", 
+                  "from-blue-950/40 to-indigo-950/20 border-blue-900/40", 
+                  "from-slate-950/40 to-blue-950/20 border-blue-900/40"
+                ] : [
                   "from-red-50 to-orange-100 border-red-200", // Turkey
                   "from-emerald-50 to-teal-100 border-emerald-200", // KSA
                   "from-blue-50 to-indigo-100 border-blue-200", // Italy
                   "from-slate-50 to-blue-100 border-blue-200" // Media
                 ];
 
-                const accentColors = [
+                const accentColors = theme === 'dark' ? [
+                  "text-red-400 bg-red-950/50 border-red-800/40", 
+                  "text-emerald-400 bg-emerald-950/50 border-emerald-800/40", 
+                  "text-indigo-400 bg-indigo-950/50 border-indigo-800/40", 
+                  "text-blue-400 bg-blue-950/50 border-blue-800/40"
+                ] : [
                   "text-red-600 bg-red-100/50 border-red-200/40", 
                   "text-emerald-700 bg-emerald-100/50 border-emerald-200/40", 
                   "text-indigo-600 bg-indigo-100/50 border-indigo-200/40", 
@@ -1156,11 +1602,22 @@ export default function App() {
                         <span className="text-3xl filter drop-shadow select-none">{rep.flag}</span>
                       </div>
 
-                      {/* Initials profile avatar bubble */}
-                      <div className={`w-20 h-20 rounded-2xl mx-auto flex items-center justify-center border-2 shadow-inner bg-gradient-to-tr ${nationalGradients[selectedRepIndex]}`}>
-                        <span className="text-2xl font-black text-gray-800 tracking-wider font-mono">
-                          {rep.name.split(' ').slice(-2).map((w: string) => w[0]).join('') || rep.name[0]}
-                        </span>
+                      {/* High-Quality Representative Avatar Profile Photo with Initials Fallback */}
+                      <div className="relative w-24 h-24 rounded-2xl mx-auto border-2 border-primary/20 overflow-hidden shadow-md group bg-slate-100 flex items-center justify-center">
+                        {REP_AVATAR_IMAGES[selectedRepIndex] ? (
+                          <img 
+                            src={REP_AVATAR_IMAGES[selectedRepIndex]} 
+                            alt={rep.name} 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div className={`w-full h-full flex items-center justify-center bg-gradient-to-tr ${nationalGradients[selectedRepIndex]}`}>
+                            <span className="text-2xl font-black text-gray-800 tracking-wider font-mono">
+                              {rep.name.split(' ').slice(-2).map((w: string) => w[0]).join('') || rep.name[0]}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Representative basic credentials details */}
@@ -1181,7 +1638,7 @@ export default function App() {
                       {/* Descriptive list bullet points */}
                       <div className="space-y-3 pt-1">
                         <div className={`flex items-start gap-3 ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}>
-                          <div className="p-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100 mt-0.5">
+                          <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/15 mt-0.5">
                             <Check className="w-3.5 h-3.5" />
                           </div>
                           <div>
@@ -1191,7 +1648,7 @@ export default function App() {
                         </div>
 
                         <div className={`flex items-start gap-3 ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}>
-                          <div className="p-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100 mt-0.5">
+                          <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/15 mt-0.5">
                             <Check className="w-3.5 h-3.5" />
                           </div>
                           <div>
@@ -1201,7 +1658,7 @@ export default function App() {
                         </div>
 
                         <div className={`flex items-start gap-3 ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}>
-                          <div className="p-1 rounded-md bg-blue-50 text-blue-600 border border-blue-100 mt-0.5">
+                          <div className="p-1 rounded-md bg-primary/10 text-primary border border-primary/15 mt-0.5">
                             <Phone className="w-3.5 h-3.5" />
                           </div>
                           <div className={textAlignment}>
@@ -1241,7 +1698,7 @@ export default function App() {
       {/* Interactive Admission Eligibility Assessment Wizard */}
       <section id="eligibility" className="py-24 bg-white border-t border-b border-gray-100">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-blue-50 text-primary font-bold text-xs mb-4 shadow-sm">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-xs mb-4 shadow-sm">
             {currentLang === 'ar' ? 'مساعد الفحص الذكي للقبول' : currentLang === 'it' ? 'VALUTAZIONE RAPIDA' : 'FAST-TRACK ELIGIBILITY'}
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-950 mb-3">
@@ -1258,7 +1715,7 @@ export default function App() {
             {/* Step 0: Welcome Assessment trigger */}
             {eligibilityStep === 0 && (
               <div className="text-center space-y-6 animate-in fade-in duration-300">
-                <div className="w-16 h-16 bg-blue-100 text-primary rounded-full flex items-center justify-center mx-auto shadow-md">
+                <div className="w-16 h-16 bg-primary/15 text-primary rounded-full flex items-center justify-center mx-auto shadow-md">
                   <ShieldCheck className="w-8 h-8" />
                 </div>
                 <div className="space-y-2">
@@ -1272,7 +1729,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setEligibilityStep(1)}
-                  className="w-full py-3.5 bg-primary hover:bg-blue-900 text-white rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-primary/10 transition-transform hover:scale-[1.02]"
+                  className="w-full py-3.5 bg-primary hover:opacity-95 text-white rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-primary/10 transition-transform hover:scale-[1.02]"
                 >
                   {t.eligibilityCheckNow}
                 </button>
@@ -1283,7 +1740,7 @@ export default function App() {
             {eligibilityStep === 1 && (
               <div className="space-y-6 animate-in slide-in-from-bottom-3 duration-300">
                 <div className={`flex justify-between items-center ${isRtl ? 'flex-row-reverse' : ''}`}>
-                  <span className="text-[10px] font-black bg-blue-100 text-primary px-3 py-1 rounded-full">{currentLang === 'ar' ? 'السؤال 1 من 3' : 'Question 1 of 3'}</span>
+                  <span className="text-[10px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full">{currentLang === 'ar' ? 'السؤال 1 من 3' : 'Question 1 of 3'}</span>
                   <button type="button" onClick={() => setEligibilityStep(0)} className="text-xs text-gray-400 hover:text-gray-600 font-bold">✕</button>
                 </div>
                 <h3 className={`text-base sm:text-lg font-extrabold text-gray-900 ${textAlignment}`}>{t.eligibilityDegreePrompt}</h3>
@@ -1300,7 +1757,7 @@ export default function App() {
                         setEligibilityDegree(item.id as any);
                         setEligibilityStep(2);
                       }}
-                      className={`w-full p-4 rounded-2xl border border-gray-200 bg-white text-gray-755 text-start font-bold text-xs sm:text-sm hover:bg-blue-50/40 hover:border-blue-200 transition-all flex justify-between items-center ${isRtl ? 'flex-row-reverse' : ''}`}
+                      className={`w-full p-4 rounded-2xl border border-gray-200 bg-white text-gray-755 text-start font-bold text-xs sm:text-sm hover:bg-primary/8 hover:border-primary/20 transition-all flex justify-between items-center ${isRtl ? 'flex-row-reverse' : ''}`}
                     >
                       <span>{item.label}</span>
                       <ChevronDown className={`w-4 h-4 text-gray-400 ${isRtl ? 'rotate-90' : '-rotate-90'}`} />
@@ -1314,7 +1771,7 @@ export default function App() {
             {eligibilityStep === 2 && (
               <div className="space-y-6 animate-in slide-in-from-bottom-3 duration-300">
                 <div className={`flex justify-between items-center ${isRtl ? 'flex-row-reverse' : ''}`}>
-                  <span className="text-[10px] font-black bg-blue-100 text-primary px-3 py-1 rounded-full">{currentLang === 'ar' ? 'السؤال 2 من 3' : 'Question 2 of 3'}</span>
+                  <span className="text-[10px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full">{currentLang === 'ar' ? 'السؤال 2 من 3' : 'Question 2 of 3'}</span>
                   <button type="button" onClick={() => setEligibilityStep(1)} className="text-xs text-gray-400 hover:text-gray-600 font-bold">{currentLang === 'ar' ? 'رجوع' : 'Back'}</button>
                 </div>
                 <h3 className={`text-base sm:text-lg font-extrabold text-gray-900 ${textAlignment}`}>
@@ -1329,7 +1786,7 @@ export default function App() {
                       setEligibilityOnline('yes');
                       setEligibilityStep(3);
                     }}
-                    className="p-5 rounded-2xl border border-gray-200 bg-white hover:bg-blue-50/45 hover:border-blue-300 text-center font-bold text-xs sm:text-sm text-gray-800 transition-all cursor-pointer"
+                    className="p-5 rounded-2xl border border-gray-200 bg-white hover:bg-primary/8 hover:border-primary/25 text-center font-bold text-xs sm:text-sm text-gray-800 transition-all cursor-pointer"
                   >
                     🚀 {currentLang === 'ar' ? 'نعم، أمتلكها' : 'Yes, I do'}
                   </button>
@@ -1339,7 +1796,7 @@ export default function App() {
                       setEligibilityOnline('no');
                       setEligibilityStep(3);
                     }}
-                    className="p-5 rounded-2xl border border-gray-200 bg-white hover:bg-red-50/45 hover:border-red-200 text-center font-bold text-xs sm:text-sm text-gray-800 transition-all cursor-pointer"
+                    className="p-5 rounded-2xl border border-gray-200 bg-white hover:bg-red-500/10 hover:border-red-500/30 text-center font-bold text-xs sm:text-sm text-gray-800 transition-all cursor-pointer"
                   >
                     ⚠️ {currentLang === 'ar' ? 'لا / غير مكتملة' : 'No / Pending'}
                   </button>
@@ -1372,15 +1829,15 @@ export default function App() {
                   <p className="font-extrabold text-gray-800 mb-2">{currentLang === 'ar' ? 'المستندات المطلوبة للتقديم بفرع أوروبا:' : 'Admissions Document Checklist:'}</p>
                   <ul className="space-y-2 text-gray-500 font-semibold font-sans">
                     <li className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>
                       <span>{currentLang === 'ar' ? 'صورة مصدقة من أحدث شهادة علمية حصلت عليها' : 'Certified copy of highest scientific diploma'}</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>
                       <span>{currentLang === 'ar' ? 'سيرة ذاتية محدثة (خاصة بطلبة الدراسات العليا)' : 'Updated CV / resume (for postgraduate applicants)'}</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>
                       <span>{currentLang === 'ar' ? 'نسخة واضحة من بطاقة الهوية / جواز السفر' : 'Valid government-issued ID / passport'}</span>
                     </li>
                   </ul>
@@ -1417,6 +1874,27 @@ export default function App() {
       </section>
 
       <StudentVoices currentLang={currentLang} isRtl={isRtl} />
+
+      {/* Interactive Admission Request Form Section */}
+      <section id="admission-portal" className="py-24 bg-slate-900 text-white relative border-t border-b border-slate-800">
+        <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-slate-950 to-transparent pointer-events-none"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="text-center mb-16">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 font-extrabold text-[11px] mb-4 uppercase tracking-widest border border-emerald-500/15">
+              {currentLang === 'ar' ? 'بوابة التسجيل الإلكتروني الموحدة' : 'REGISTRAR SYSTEM v1.2'}
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-white">
+              {currentLang === 'ar' ? 'نموذج تقديم طلب القبول الأكاديمي' : 'Digital Student Enrollment Hub'}
+            </h2>
+            <p className="text-slate-450 max-w-xl mx-auto text-xs sm:text-sm mt-3 leading-relaxed font-semibold">
+              {currentLang === 'ar' 
+                ? 'عبئ بياناتك الأكاديمية وارفع مستنداتك اليوم مجاناً للحصول على رسالة قبول رسمي وخطوة تسعير مفصلة فوراً من الإدارة الإقليمية لفرع غرب أوروبا.'
+                : 'Fill in your academic background and upload credentials folder to calculate immediate tuition and obtain conditional administrative review letter.'}
+            </p>
+          </div>
+          <AdmissionForm currentLang={currentLang} />
+        </div>
+      </section>
 
       {/* Registration Steps & Executive Portrait */}
       <section id="register" className="py-20 bg-gray-950 text-white relative">
@@ -1527,75 +2005,12 @@ export default function App() {
       </section>
 
       {/* Dynamic Accordion-Style FAQ Section */}
-      <section id="faq" className="py-24 bg-slate-50 border-t border-b border-gray-100 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 w-[500px] h-[500px] bg-blue-100/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 -z-10"></div>
-        
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16 relative">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-blue-100 text-primary font-bold text-xs mb-4 shadow-sm">
-            {currentLang === 'ar' ? 'الأسئلة الشائعة والإجابات' : 'FAQ PORTAL'}
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-950 mb-4">
-            {t.faqTitle}
-          </h2>
-          <p className="text-gray-550 max-w-xl mx-auto text-xs sm:text-sm leading-relaxed font-semibold">
-            {t.faqSub}
-          </p>
-        </div>
-
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="space-y-4">
-            {faqList.map((item, idx) => {
-              const isOpen = openFaqIndex === idx;
-              return (
-                <div 
-                  key={idx}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-300"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setOpenFaqIndex(isOpen ? -1 : idx)}
-                    className={`w-full p-5 sm:p-6 flex justify-between items-center text-start gap-4 transition-colors hover:bg-slate-50 cursor-pointer ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}
-                  >
-                    <span className="text-sm sm:text-base font-extrabold text-gray-900 leading-snug">{item.question}</span>
-                    <span className={`p-1.5 rounded-xl transition-all duration-300 ${isOpen ? 'bg-primary text-white rotate-180' : 'bg-slate-50 text-gray-400'}`}>
-                      <ChevronDown className="w-5 h-5" />
-                    </span>
-                  </button>
-
-                  <div 
-                    className={`transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[300px] border-t border-gray-50' : 'max-h-0'}`}
-                    style={{ overflow: 'hidden' }}
-                  >
-                    <div className={`p-5 sm:p-6 text-xs sm:text-sm text-gray-600 leading-relaxed font-semibold bg-slate-50/50 ${textAlignment}`}>
-                      {item.answer}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="mt-12 text-center p-5 bg-blue-50/30 border border-blue-50/50 rounded-2xl">
-            <p className="text-xs sm:text-sm text-gray-500 font-bold">
-              {currentLang === 'ar' ? '💡 هل لديك أي سؤال علمي أو إداري آخر؟' : '💡 Have more custom inquiries representing your country?'}
-            </p>
-            <a 
-              href="https://wa.me/393518530537" 
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-primary text-xs sm:text-sm font-extrabold mt-2 hover:underline"
-            >
-              <span>{currentLang === 'ar' ? 'تواصل مع الإدارة مباشرة عبر واتساب' : 'Chat directly with Admissions Board'}</span>
-              <span>→</span>
-            </a>
-          </div>
-        </div>
-      </section>
+      <UniversityFaqs currentLang={currentLang} />
 
       {/* Footer */}
       <footer className="py-12 bg-white border-t border-gray-100 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center border-b border-gray-100 pb-8 mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-6 border-b border-gray-100 pb-8 mb-8">
             
             {/* Branding */}
             <div className={`flex items-center gap-3 ${flexNavDirection}`}>
@@ -1609,20 +2024,6 @@ export default function App() {
                 <span className="text-md font-extrabold text-primary block leading-tight">{t.logoText}</span>
                 <span className="text-[10px] text-gray-550 block mt-0.5 font-bold leading-tight">{t.footerSlogan}</span>
               </div>
-            </div>
-
-            {/* Language switch inline triggers */}
-            <div className="flex flex-wrap gap-2.5 justify-center">
-              {LANGUAGES.map(lang => (
-                <button
-                  key={lang.code}
-                  onClick={() => setCurrentLang(lang.code)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 border ${currentLang === lang.code ? 'bg-primary text-white border-primary' : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-200'}`}
-                >
-                  <span className="text-sm">{lang.flag}</span>
-                  <span>{lang.label}</span>
-                </button>
-              ))}
             </div>
 
             {/* Social channels */}
@@ -1664,11 +2065,23 @@ export default function App() {
         href="https://wa.me/393518530537" 
         target="_blank"
         rel="noreferrer"
-        className={`fixed bottom-8 ${isRtl ? 'left-8' : 'right-8'} bg-green-500 text-white p-4 rounded-full shadow-2xl hover:scale-110 hover:-translate-y-1 transition-all duration-300 z-50 flex items-center justify-center`}
+        className="fixed bottom-8 left-8 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:scale-110 hover:-translate-y-1 transition-all duration-300 z-50 flex items-center justify-center"
         title={t.navContactUs}
       >
         <MessageCircle className="w-7 h-7" />
       </a>
+
+      {/* Bilingual AI University Advisor Chatbot Widget */}
+      <UniversityChatbot currentLang={currentLang} />
+
+      {/* Syllabus Preview Modal Component Backdrop Panel */}
+      <SyllabusPreviewModal 
+        isOpen={isPreviewOpen} 
+        onClose={() => setIsPreviewOpen(false)} 
+        item={selectedSyllabusItem} 
+        currentLang={currentLang} 
+        isRtl={isRtl} 
+      />
     </div>
   );
 }

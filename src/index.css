@@ -1,13 +1,70 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Amiri:wght@400;700&display=swap');
 @import "tailwindcss";
 
+:root {
+  --theme-primary: #1e3a8a; /* Deep Blue, rich contrast on white */
+  --theme-secondary: #0f766e; /* Teal */
+  --theme-accent: #d97706; /* Amber/Gold */
+  --theme-bg-white: #ffffff;
+  --theme-bg-slate-50: #f8fafc;
+  --theme-text-gray-950: #030712;
+  --theme-text-gray-900: #111827;
+  --theme-text-gray-800: #1f2937;
+  --theme-text-gray-700: #374151;
+  --theme-text-gray-600: #4b5563;
+  --theme-text-gray-500: #6b7280;
+  --theme-text-gray-400: #9ca3af;
+  --theme-border-gray-100: #f3f4f6;
+  --theme-border-gray-150: #e5e7eb;
+  --theme-border-gray-200: #e5e7eb;
+  --theme-shadow-opacity: 0.05;
+}
+
+.dark {
+  --theme-primary: #3b82f6; /* Brighter Blue for high text visibility in dark mode */
+  --theme-secondary: #2dd4bf; /* Vibrant Teal */
+  --theme-accent: #f59e0b; /* Bright Amber */
+  --theme-bg-white: #0f172a; /* Slate-900 */
+  --theme-bg-slate-50: #090d16; /* Near Black / Dark Slate */
+  --theme-text-gray-950: #f8fafc; /* Slate-50 */
+  --theme-text-gray-900: #f1f5f9; /* Slate-100 */
+  --theme-text-gray-800: #e2e8f0; /* Slate-200 */
+  --theme-text-gray-700: #cbd5e1; /* Slate-300 */
+  --theme-text-gray-600: #a1a1aa; /* Zinc-400 */
+  --theme-text-gray-500: #71717a; /* Zinc-500 */
+  --theme-text-gray-400: #52525b; /* Zinc-600 */
+  --theme-border-gray-100: #1e293b; /* Slate-800 */
+  --theme-border-gray-150: #1e293b; /* Slate-800 */
+  --theme-border-gray-200: #334155; /* Slate-700 */
+  --theme-shadow-opacity: 0.25;
+}
+
 @theme {
   --font-sans: "Cairo", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Amiri", serif;
   
-  --color-primary: #1e3a8a; /* Deep Blue */
-  --color-secondary: #0f766e; /* Teal */
-  --color-accent: #d97706; /* Amber/Gold */
+  --color-primary: var(--theme-primary);
+  --color-secondary: var(--theme-secondary);
+  --color-accent: var(--theme-accent);
+  
+  --color-white: var(--theme-bg-white);
+  --color-slate-50: var(--theme-bg-slate-50);
+  
+  --color-gray-950: var(--theme-text-gray-950);
+  --color-gray-900: var(--theme-text-gray-900);
+  --color-gray-800: var(--theme-text-gray-800);
+  --color-gray-700: var(--theme-text-gray-700);
+  --color-gray-650: var(--theme-text-gray-600);
+  --color-gray-600: var(--theme-text-gray-600);
+  --color-gray-550: var(--theme-text-gray-600);
+  --color-gray-500: var(--theme-text-gray-500);
+  --color-gray-450: var(--theme-text-gray-500);
+  --color-gray-400: var(--theme-text-gray-400);
+  --color-gray-350: var(--theme-text-gray-400);
+  
+  --color-gray-100: var(--theme-border-gray-100);
+  --color-gray-150: var(--theme-border-gray-150);
+  --color-gray-200: var(--theme-border-gray-200);
 }
 
 @layer base {
@@ -17,10 +74,10 @@
   }
   
   body {
-    @apply font-sans text-gray-900 bg-gray-50;
+    @apply font-sans text-gray-900 bg-slate-50 transition-colors duration-300;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif;
+    @apply font-serif text-gray-950;
   }
 }
