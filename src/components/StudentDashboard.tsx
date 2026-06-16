@@ -12,7 +12,9 @@ import {
   FolderPlus, 
   GraduationCap, 
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Printer,
+  Trash2
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -20,6 +22,181 @@ interface StudentDashboardProps {
   currentLang: string;
   isRtl?: boolean;
 }
+
+const INITIAL_SCHEDULE = [
+  { id: "s1", day: "Monday", time: "09:00 - 11:00", courseCode: "FIQ-502", title: "Comparative Jurisprudence", type: "Core Lecture" },
+  { id: "s2", day: "Monday", time: "13:00 - 15:00", courseCode: "ARB-589", title: "Arabic Linguistics Seminar", type: "Syllabus Session" },
+  { id: "s3", day: "Tuesday", time: "10:00 - 12:00", courseCode: "USL-510", title: "Divine Legislative Theory", type: "Tutorial Lab" },
+  { id: "s4", day: "Wednesday", time: "09:00 - 11:00", courseCode: "HDT-514", title: "Hadith Hermeneutics", type: "Research Group" },
+  { id: "s5", day: "Wednesday", time: "14:00 - 16:00", courseCode: "FIQ-502", title: "Jurisprudence Practical Workshop", type: "Interactive Practice" },
+  { id: "s6", day: "Thursday", time: "11:00 - 13:00", courseCode: "USL-510", title: "Seminar on Awqaf Endowments", type: "Review Presentation" },
+  { id: "s7", day: "Thursday", time: "15:00 - 17:00", courseCode: "ARB-589", title: "Modern Linguistics Syntax Class", type: "Academic Colloquium" },
+  { id: "s8", day: "Friday", time: "09:00 - 11:00", courseCode: "HDT-514", title: "Textual Criticism & Scribe Analysis", type: "Core Seminar" }
+];
+
+const LOCALIZED_DAYS: Record<string, Record<string, string>> = {
+  en: { Monday: "Monday", Tuesday: "Tuesday", Wednesday: "Wednesday", Thursday: "Thursday", Friday: "Friday" },
+  ar: { Monday: "الاثنين", Tuesday: "الثلاثاء", Wednesday: "الأربعاء", Thursday: "الخميس", Friday: "الجمعة" },
+  it: { Monday: "Lunedì", Tuesday: "Martedì", Wednesday: "Mercoledì", Thursday: "Giovedì", Friday: "Venerdì" },
+  de: { Monday: "Montag", Tuesday: "Dienstag", Wednesday: "Mittwoch", Thursday: "Donnerstag", Friday: "Freitag" },
+  fr: { Monday: "Lundi", Tuesday: "Mardi", Wednesday: "Mercredi", Thursday: "Jeudi", Friday: "Vendredi" }
+};
+
+const LOCALIZED_TYPES: Record<string, Record<string, string>> = {
+  en: { "Core Lecture": "Core Lecture", "Syllabus Session": "Syllabus Session", "Tutorial Lab": "Tutorial Lab", "Research Group": "Research Group", "Interactive Practice": "Interactive Practice", "Review Presentation": "Review Presentation", "Academic Colloquium": "Academic Colloquium", "Core Seminar": "Core Seminar", "Personal Session": "Personal Session" },
+  ar: { "Core Lecture": "محاضرة أساسية", "Syllabus Session": "جلسة مقرر دراسي", "Tutorial Lab": "مختبر توجيهي", "Research Group": "مجموعة بحثية", "Interactive Practice": "تدريب عملي تفاعلي", "Review Presentation": "عرض مراجعة", "Academic Colloquium": "ندوة أكاديمية", "Core Seminar": "سيمنار علمي", "Personal Session": "جلسة دراسة خاصة" },
+  it: { "Core Lecture": "Lezione Principale", "Syllabus Session": "Sessione Programma", "Tutorial Lab": "Laboratorio di Tutorato", "Research Group": "Gruppo di Ricerca", "Interactive Practice": "Pratica Interattiva", "Review Presentation": "Presentazione Corrente", "Academic Colloquium": "Colloquio Accademico", "Core Seminar": "Seminario Principale", "Personal Session": "Sessione Personale" },
+  de: { "Core Lecture": "Kernvorlesung", "Syllabus Session": "Syllabus-Sitzung", "Tutorial Lab": "Tutoriums-Labor", "Research Group": "Forschungsgruppe", "Interactive Practice": "Interaktive Praxis", "Review Presentation": "Review-Präsentation", "Academic Colloquium": "Akademisches Kolloquium", "Core Seminar": "Hauptseminar", "Personal Session": "Eigene Lerneinheit" },
+  fr: { "Core Lecture": "Cours Magistral", "Syllabus Session": "Session Syllabus", "Tutorial Lab": "Travaux Dirigés", "Research Group": "Groupe de Recherche", "Interactive Practice": "Atelier Interactif", "Review Presentation": "Présentation Synthèse", "Academic Colloquium": "Colloque Académique", "Core Seminar": "Séminaire de Base", "Personal Session": "Session Individuelle" }
+};
+
+const SCHEDULE_LOCALIZATION: Record<string, any> = {
+  ar: {
+    scheduleTitle: "الجدول والتقويم الدراسي الشخصي",
+    scheduleSubtitle: "إدارة وتخصيص ساعات الدراسة والمحاضرات الأسبوعية",
+    colDay: "اليوم",
+    colTime: "الفترة الزمنية",
+    colCourse: "المقرر الدراسي",
+    colSubject: "الموضوع والمهمة",
+    colType: "النوع",
+    colActions: "إجراءات",
+    addCustomSlot: "إضافة فترة دراسية مخصصة",
+    inputDay: "اختر اليوم",
+    inputTime: "الوقت (مثال: 14:00 - 16:00)",
+    inputCourse: "المقرر المرتبط",
+    inputTitle: "عنوان الجلسة (مثال: مراجعة الفقه الأسبوعي)",
+    inputType: "نوع الجلسة",
+    btnSubmit: "إضافة للجدول",
+    btnPrint: "طباعة وتحميل الجدول الدراسي الرسمي (PDF)",
+    studentProfile: "خصائص وثيقة الجدول للطباعة",
+    studentLabel: "الاسم الكامل للطالب",
+    studentIdLabel: "رقم القيد الأكاديمي",
+    alertPrint: "تلميح: سيقوم المتصفح بتهيئة صفحة طباعة قياسية مخصصة تخفي المكونات الجانبية والخلفيات تلقائياً للحصول على مستند ورقي نظيف وبدقة عالية.",
+    officialSealTitle: "الجدول الدراسي الأكاديمي المعتمد - عام 2026",
+    officialSealDesc: "صادر معتمدًا من عمادة التسجيل الشؤون الأكاديمية بالجامعة الإسلامية ببروكسل.",
+    academicOfficeSignature: "توقيع واعتماد مسجل عمادة الكلية الأكاديمية",
+    noAssociatedCourse: "دراسة حرة / مستقلة",
+    deleteSlot: "حذف الجلسة",
+    personalStudyNotes: "ملاحظات وتوجيهات دراسية إضافية للطباعة",
+    personalNotesPlaceholder: "اكتب هنا أي ملاحظات أو توجيهات أكاديمية تود طباعتها في أسفل الورقة الرائد..."
+  },
+  en: {
+    scheduleTitle: "Personal Weekly Study Schedule",
+    scheduleSubtitle: "Manage or append custom study sequences & weekly academic workloads",
+    colDay: "Day",
+    colTime: "Time Slot",
+    colCourse: "Related Course",
+    colSubject: "Subject & Topic",
+    colType: "Session Type",
+    colActions: "Actions",
+    addCustomSlot: "Add Custom Academic Session",
+    inputDay: "Select Day",
+    inputTime: "Time (e.g., 14:00 - 16:00)",
+    inputCourse: "Associated Course",
+    inputTitle: "Session Title (e.g., Quran Revision Prep)",
+    inputType: "Session Type",
+    btnSubmit: "Add to Schedule",
+    btnPrint: "Print & Export Official Schedule (PDF)",
+    studentProfile: "Print Schedule Metadata Settings",
+    studentLabel: "Student Registered Name",
+    studentIdLabel: "Academic Registration Matricula ID",
+    alertPrint: "Note: Standard PDF print dialogue will prepare a highly-polished, border-aligned black-and-white academic record.",
+    officialSealTitle: "Officially Certified Academic Schedule - 2026 Academic Year",
+    officialSealDesc: "Issued by the Dean of Academic Affairs, Admissions and Registration Dept at Brussels Islamic University, Belgium.",
+    academicOfficeSignature: "Academic Registrar Signature & Official Stamp",
+    noAssociatedCourse: "Self-Guided / Free Study",
+    deleteSlot: "Delete Session",
+    personalStudyNotes: "Additional Printed Study Directives",
+    personalNotesPlaceholder: "Type optional remarks or notes to be printed at the bottom of the PDF dossier..."
+  },
+  it: {
+    scheduleTitle: "Calendario di Studio Personale",
+    scheduleSubtitle: "Gestisci o inserisci sessioni di studio personalizzate e lezioni settimanali",
+    colDay: "Giorno",
+    colTime: "Orario",
+    colCourse: "Corso Correlato",
+    colSubject: "Argomento & Attività",
+    colType: "Tipo di Sessione",
+    colActions: "Azioni",
+    addCustomSlot: "Aggiungi Sessione Accademica",
+    inputDay: "Seleziona Giorno",
+    inputTime: "Orario (es. 14:00 - 16:00)",
+    inputCourse: "Corso Associato",
+    inputTitle: "Titolo Sessione (es. Ripasso Corano)",
+    inputType: "Tipo di Sessione",
+    btnSubmit: "Aggiungi al Calendario",
+    btnPrint: "Stampa ed Esporta Calendario Ufficiale (PDF)",
+    studentProfile: "Metadati del Certificato di Stampa",
+    studentLabel: "Nome Registrato dello Studente",
+    studentIdLabel: "ID Matricola di Registrazione",
+    alertPrint: "Nota: Il dialogo di stampa standard preparerà un record accademico ufficiale in bianco e nero lucido.",
+    officialSealTitle: "Calendario Accademico Certificato Ufficialmente - Anno 2026",
+    officialSealDesc: "Rilasciato dal Preside degli Affari Accademici, Dipartimento Ammissioni e Registrazioni presso l'Università Islamica di Bruxelles.",
+    academicOfficeSignature: "Firma del Registratore Accademico & Timbro Ufficiale",
+    noAssociatedCourse: "Studio Autoguidato / Libero",
+    deleteSlot: "Elimina Sessione",
+    personalStudyNotes: "Annotazioni di Studio Aggiuntive",
+    personalNotesPlaceholder: "Scrivi annotazioni opzionali da aggiungere alla stampa PDF..."
+  },
+  de: {
+    scheduleTitle: "Persönlicher wöchentlicher Studienplan",
+    scheduleSubtitle: "Verwalten oder ergänzen Sie eigene Lerneinheiten und wöchentliche Belastungen",
+    colDay: "Wochentag",
+    colTime: "Uhrzeit",
+    colCourse: "Zugeordneter Kurs",
+    colSubject: "Thema & Aufgabe",
+    colType: "Sitzungstyp",
+    colActions: "Aktion",
+    addCustomSlot: "Eigene Lerneinheit hinzufügen",
+    inputDay: "Tag auswählen",
+    inputTime: "Zeitraum (z.B. 14:00 - 16:00)",
+    inputCourse: "Verknüpfter Kurs",
+    inputTitle: "Titel der Sitzung (z.B. Koranseminar Vorbereitung)",
+    inputType: "Sitzungstyp",
+    btnSubmit: "Zum Plan hinzufügen",
+    btnPrint: "Offiziellen Studienplan drucken & exportieren (PDF)",
+    studentProfile: "Zertifikats-Metadaten für den Druck",
+    studentLabel: "Eingetragener Name des Studierenden",
+    studentIdLabel: "Matrikelnummer (Registrierungsnummer)",
+    alertPrint: "Hinweis: Der Standard-Druckdialog bereitet ein hochauflösendes, offizielles Studiendokument in elegantem Layout vor.",
+    officialSealTitle: "Offiziell beglaubigter akademischer Studienplan - Studienjahr 2026",
+    officialSealDesc: "Ausgestellt vom Dekanat für akademische Angelegenheiten, Zulassungs- und Registrierungsstelle an der Islamischen Universität Brüssel.",
+    academicOfficeSignature: "Unterschrift des akademischen Registrars & offizieller Stempel",
+    noAssociatedCourse: "Selbststudium / Freies Lernen",
+    deleteSlot: "Sitzung löschen",
+    personalStudyNotes: "Zusätzliche gedruckte Studienhinweise",
+    personalNotesPlaceholder: "Geben Sie optionale Anmerkungen ein, die unten auf das PDF-Dokument gedruckt werden sollen..."
+  },
+  fr: {
+    scheduleTitle: "Calendrier d'Étude Hebdomadaire Personnalisé",
+    scheduleSubtitle: "Gerez ou ajoutez des séances d'étude personnalisées et activités académiques",
+    colDay: "Jour",
+    colTime: "Créneau Horaire",
+    colCourse: "Cours Associé",
+    colSubject: "Sujet & Thème",
+    colType: "Type de Session",
+    colActions: "Actions",
+    addCustomSlot: "Ajouter un créneau académique",
+    inputDay: "Sélectionner le jour",
+    inputTime: "Heure (ex. 14:00 - 16:00)",
+    inputCourse: "Cours Associé",
+    inputTitle: "Titre du créneau (ex. Préparation révisions Coran)",
+    inputType: "Type de créneau",
+    btnSubmit: "Ajouter au calendrier",
+    btnPrint: "Imprimer & Exporter le planning officiel (PDF)",
+    studentProfile: "Métadonnées pour le document",
+    studentLabel: "Nom enregistré de l'étudiant",
+    studentIdLabel: "ID d'enregistrement (Numéro Matricule)",
+    alertPrint: "Note: L'impression standard va générer un dossier d'inscription universitaire officiel en noir et blanc haute fidélité.",
+    officialSealTitle: "Calendrier Académique Officiellement Certifié - Année 2026",
+    officialSealDesc: "Délivré par le secrétariat général des affaires académiques et admissions de l'Université Islamique de Bruxelles.",
+    academicOfficeSignature: "Signature du Secrétaire Général & Tampon Officiel",
+    noAssociatedCourse: "Autonome / Étude Libre",
+    deleteSlot: "Supprimer le créneau",
+    personalStudyNotes: "Directives ou annotations supplémentaires",
+    personalNotesPlaceholder: "Saisissez des remarques supplémentaires à imprimer en bas de votre dossier PDF..."
+  }
+};
 
 const DASHBOARD_LOCALIZATION: Record<string, any> = {
   ar: {
@@ -229,6 +406,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   isRtl = false
 }) => {
   const t = DASHBOARD_LOCALIZATION[currentLang] || DASHBOARD_LOCALIZATION["en"];
+  const sdT = SCHEDULE_LOCALIZATION[currentLang] || SCHEDULE_LOCALIZATION["en"];
   
   // Interactive Dynamic States
   const [courses, setCourses] = useState<any[]>(t.coursesList);
@@ -236,6 +414,56 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [selectedAssignment, setSelectedAssignment] = useState<any | null>(null);
   const [submissionFeedback, setSubmissionFeedback] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Schedule States
+  const [schedule, setSchedule] = useState<any[]>(() => {
+    try {
+      const stored = localStorage.getItem("academic_study_schedule");
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    return INITIAL_SCHEDULE;
+  });
+
+  const [studentName, setStudentName] = useState("Arkan Marschall");
+  const [studentId, setStudentId] = useState("BIU-2026-89420");
+  const [personalRemarks, setPersonalRemarks] = useState("");
+
+  const [newDay, setNewDay] = useState("Monday");
+  const [newTime, setNewTime] = useState("11:00 - 13:00");
+  const [newCourse, setNewCourse] = useState("FIQ-502");
+  const [newSubject, setNewSubject] = useState("");
+  const [newType, setNewType] = useState("Core Lecture");
+
+  const handleAddSlot = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSubject.trim()) return;
+    const newSlot = {
+      id: "custom_" + Date.now(),
+      day: newDay,
+      time: newTime,
+      courseCode: newCourse === "none" ? "" : newCourse,
+      title: newSubject,
+      type: newType
+    };
+    const updated = [...schedule, newSlot];
+    setSchedule(updated);
+    try {
+      localStorage.setItem("academic_study_schedule", JSON.stringify(updated));
+    } catch (err) {}
+    setNewSubject("");
+  };
+
+  const handleDeleteSlot = (id: string) => {
+    const updated = schedule.filter(item => item.id !== id);
+    setSchedule(updated);
+    try {
+      localStorage.setItem("academic_study_schedule", JSON.stringify(updated));
+    } catch (err) {}
+  };
+
+  const handlePrintSchedule = () => {
+    window.print();
+  };
 
   // Sync to language updates
   React.useEffect(() => {
@@ -532,6 +760,444 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
         </div>
 
+      </div>
+
+      {/* 3. Interactive Personal Study Schedule Section */}
+      <div className="bg-slate-950/85 p-5 rounded-2xl border border-slate-900 space-y-6 mt-6">
+        <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-900 ${flexDir}`}>
+          <div className="flex items-center gap-2">
+            <div className="bg-indigo-500/10 p-2 rounded-lg text-indigo-400">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div className={textAlignment}>
+              <h4 className="text-xs sm:text-sm font-black uppercase text-white tracking-wide">
+                {sdT.scheduleTitle}
+              </h4>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                {sdT.scheduleSubtitle}
+              </p>
+            </div>
+          </div>
+
+          <div className={`flex flex-wrap items-center gap-2 ${isRtl ? 'justify-end' : 'justify-start'}`}>
+            <button
+              type="button"
+              onClick={handlePrintSchedule}
+              className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-[10px] sm:text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 cursor-pointer"
+            >
+              <Printer className="w-4 h-4 text-slate-950" />
+              <span>{sdT.btnPrint}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Info Notification Alert concerning PDF output instructions */}
+        <div className={`text-[9px] sm:text-[10px] font-semibold text-slate-450 bg-slate-950/30 p-3 rounded-xl border border-slate-900/60 flex items-start gap-2.5 leading-relaxed ${flexDir}`}>
+          <AlertCircle className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+          <p className={textAlignment}>{sdT.alertPrint}</p>
+        </div>
+
+        {/* Live Profile Settings Customization Box */}
+        <div className="p-4 bg-slate-900/20 rounded-xl border border-slate-900 space-y-3.5">
+          <h5 className={`text-[10px] font-bold text-slate-300 uppercase tracking-wider ${textAlignment}`}>
+            👤 {sdT.studentProfile}
+          </h5>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <label className={`block text-[10px] font-extrabold text-slate-400 ${textAlignment}`}>{sdT.studentLabel}</label>
+              <input
+                type="text"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                className={`w-full bg-slate-950 text-white placeholder-slate-600 border border-slate-900 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 ${textAlignment}`}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className={`block text-[10px] font-extrabold text-slate-400 ${textAlignment}`}>{sdT.studentIdLabel}</label>
+              <input
+                type="text"
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value)}
+                className={`w-full bg-slate-950 text-white placeholder-slate-650 border border-slate-900 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 ${textAlignment}`}
+              />
+            </div>
+            <div className="space-y-1.5 md:col-span-2 lg:col-span-1">
+              <label className={`block text-[10px] font-extrabold text-slate-400 ${textAlignment}`}>{sdT.personalStudyNotes}</label>
+              <input
+                type="text"
+                value={personalRemarks}
+                onChange={(e) => setPersonalRemarks(e.target.value)}
+                placeholder={sdT.personalNotesPlaceholder}
+                className={`w-full bg-slate-950 text-white placeholder-slate-600 border border-slate-900 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 ${textAlignment}`}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          
+          {/* Main List of Study Slots */}
+          <div className="lg:col-span-8 space-y-3 max-h-[500px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((dayName) => {
+                const daySlots = schedule.filter(s => s.day === dayName);
+                if (daySlots.length === 0) return null;
+                return (
+                  <div key={dayName} className="p-3.5 bg-slate-900/20 border border-slate-900 rounded-xl space-y-2.5">
+                    <div className={`flex justify-between items-center border-b border-slate-900 pb-1.5 ${flexDir}`}>
+                      <span className="text-[11px] font-black text-indigo-400 uppercase tracking-widest">
+                        {LOCALIZED_DAYS[currentLang]?.[dayName] || dayName}
+                      </span>
+                      <span className="text-[9px] font-mono text-slate-500">
+                        {daySlots.length} {isRtl ? "فترات" : "sessions"}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {daySlots.map((slot) => {
+                        const isCustom = slot.id.toString().includes("custom");
+                        return (
+                          <div 
+                            key={slot.id} 
+                            className={`p-2.5 rounded-lg text-left transition text-xs border ${
+                              isCustom 
+                                ? "bg-amber-500/5 border-amber-500/10 text-amber-300"
+                                : "bg-slate-950/40 border-slate-900/60 text-slate-200"
+                            }`}
+                          >
+                            <div className={`flex justify-between items-start gap-1 ${flexDir}`}>
+                              <span className="text-[9px] font-mono font-bold text-indigo-350 shrink-0">
+                                {slot.time}
+                              </span>
+                              {isCustom && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteSlot(slot.id)}
+                                  className="text-red-400 hover:text-red-300 transition duration-150 p-0.5 rounded cursor-pointer shrink-0"
+                                  title={sdT.deleteSlot}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+
+                            <p className={`font-bold mt-1 text-[10px] leading-snug sm:text-xs text-white ${textAlignment}`}>
+                              {slot.title}
+                            </p>
+
+                            <div className={`flex justify-between items-center mt-1.5 border-t border-slate-900/40 pt-1 text-[9px] text-slate-400 ${flexDir}`}>
+                              <span className="font-mono bg-slate-950 px-1.5 py-0.2 rounded text-[8px] text-slate-400">
+                                {slot.courseCode || sdT.noAssociatedCourse}
+                              </span>
+                              <span className="text-slate-500 font-semibold italic text-[8px]">
+                                {LOCALIZED_TYPES[currentLang]?.[slot.type] || slot.type}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Add custom session slot form sidebar */}
+          <div className="lg:col-span-4 bg-slate-900/10 p-4 rounded-xl border border-slate-900">
+            <h5 className={`text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3.5 flex items-center gap-1.5 ${flexDir}`}>
+              <Plus className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>{sdT.addCustomSlot}</span>
+            </h5>
+
+            <form onSubmit={handleAddSlot} className="space-y-3 text-left">
+              <div className="space-y-1">
+                <label className="text-[9px] font-extrabold text-slate-400 block">{sdT.inputDay}</label>
+                <select
+                  value={newDay}
+                  onChange={(e) => setNewDay(e.target.value)}
+                  className="w-full bg-slate-950 text-white border border-slate-900 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="Monday">{LOCALIZED_DAYS[currentLang]?.["Monday"] || "Monday"}</option>
+                  <option value="Tuesday">{LOCALIZED_DAYS[currentLang]?.["Tuesday"] || "Tuesday"}</option>
+                  <option value="Wednesday">{LOCALIZED_DAYS[currentLang]?.["Wednesday"] || "Wednesday"}</option>
+                  <option value="Thursday">{LOCALIZED_DAYS[currentLang]?.["Thursday"] || "Thursday"}</option>
+                  <option value="Friday">{LOCALIZED_DAYS[currentLang]?.["Friday"] || "Friday"}</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] font-extrabold text-slate-400 block">{sdT.inputTime}</label>
+                <input
+                  type="text"
+                  value={newTime}
+                  onChange={(e) => setNewTime(e.target.value)}
+                  className="w-full bg-slate-950 text-white border border-slate-900 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-indigo-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] font-extrabold text-slate-400 block">{sdT.inputCourse}</label>
+                <select
+                  value={newCourse}
+                  onChange={(e) => setNewCourse(e.target.value)}
+                  className="w-full bg-slate-950 text-white border border-slate-900 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="none">-- {sdT.noAssociatedCourse} --</option>
+                  {courses.map(c => (
+                    <option key={c.id} value={c.code}>{c.code} - {c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] font-extrabold text-slate-400 block">{sdT.inputTitle}</label>
+                <input
+                  type="text"
+                  value={newSubject}
+                  onChange={(e) => setNewSubject(e.target.value)}
+                  placeholder="e.g. Fiqh Chapter 4 recitation review"
+                  className="w-full bg-slate-950 text-white border border-slate-900 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-indigo-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] font-extrabold text-slate-400 block">{sdT.inputType}</label>
+                <select
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value)}
+                  className="w-full bg-slate-950 text-white border border-slate-900 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-indigo-500"
+                >
+                  {Object.keys(LOCALIZED_TYPES.en).map(tKey => (
+                    <option key={tKey} value={tKey}>
+                      {LOCALIZED_TYPES[currentLang]?.[tKey] || tKey}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full mt-2 py-1.5 px-3 rounded-lg text-[10px] font-bold bg-indigo-650 hover:bg-slate-950 border border-indigo-600/50 hover:border-indigo-550 text-white transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 text-emerald-450" />
+                <span>{sdT.btnSubmit}</span>
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+
+      {/* =======================================================
+          OFFICIAL PRINT-READY TEMPLATE (HIDDEN ON BROWSER PREVIEW)
+          ======================================================= */}
+      <div id="academic-print-schedule" className="hidden print:block p-8 bg-white text-black font-sans text-sm">
+        <style dangerouslySetInnerHTML={{ __html: `
+          @media print {
+            body * {
+              visibility: hidden !important;
+            }
+            #academic-print-schedule, #academic-print-schedule * {
+              visibility: visible !important;
+            }
+            #academic-print-schedule {
+              position: absolute !important;
+              left: 20px !important;
+              top: 20px !important;
+              right: 20px !important;
+              background: #ffffff !important;
+              color: #000000 !important;
+              display: block !important;
+            }
+            .no-print {
+              display: none !important;
+            }
+          }
+        `}} />
+
+        {/* Certificate Header */}
+        <div className="border-b-4 border-slate-900 pb-5 mb-5 text-center">
+          <div className="flex items-center justify-between pb-3">
+            <div className="text-left font-serif leading-tight">
+              <h1 className="text-xl font-bold uppercase tracking-wide text-slate-900">
+                {SCHEDULE_LOCALIZATION[currentLang]?.printHeaderTitle || SCHEDULE_LOCALIZATION["en"].printHeaderTitle}
+              </h1>
+              <p className="text-[10px] uppercase text-slate-500 tracking-wider">
+                Virtual Campus Student Portal
+              </p>
+            </div>
+            {/* Stamp Ornament/Seal */}
+            <div className="font-serif text-right text-[8px] uppercase tracking-widest text-slate-500 border border-slate-400 p-1.5 rounded">
+              BRUSSELS, BELGIUM<br />
+              ESTABLISHED 2024
+            </div>
+          </div>
+          <h2 className="text-md font-black text-slate-800 uppercase text-center tracking-wide mt-2">
+            {sdT.officialSealTitle}
+          </h2>
+          <p className="text-[9px] text-slate-500 text-center italic">
+            Semestral Academic Load Verification File
+          </p>
+        </div>
+
+        {/* Student metadata table card */}
+        <div className="bg-slate-50 border border-slate-300 rounded-lg p-3.5 mb-5 grid grid-cols-2 gap-y-1.5 gap-x-6 text-xs">
+          <div>
+            <span className="text-[9px] uppercase font-bold text-slate-500 block">
+              {sdT.studentLabel}
+            </span>
+            <span className="text-xs font-black text-slate-800 font-mono">
+              {studentName}
+            </span>
+          </div>
+          <div>
+            <span className="text-[9px] uppercase font-bold text-slate-500 block">
+              {sdT.studentIdLabel}
+            </span>
+            <span className="text-xs font-black text-slate-800 font-mono">
+              {studentId}
+            </span>
+          </div>
+          <div>
+            <span className="text-[9px] uppercase font-bold text-slate-500 block">
+              Current Academic Status
+            </span>
+            <span className="text-[11px] font-bold text-slate-800">
+              Active Enrollment / Dean's List performance (GPA 3.85 / 4.0)
+            </span>
+          </div>
+          <div>
+            <span className="text-[9px] uppercase font-bold text-slate-500 block">
+              Academic Term / Session
+            </span>
+            <span className="text-[11px] font-bold text-slate-800">
+              Summer Semester Term (June - August 2026)
+            </span>
+          </div>
+        </div>
+
+        {/* Table list of schedule slots */}
+        <table className="w-full border-collapse border border-slate-300 text-left mb-5">
+          <thead>
+            <tr className="bg-slate-100 text-[10px] text-slate-700 uppercase font-bold text-xs">
+              <th className="border border-slate-300 p-1.5 w-24">{sdT.colDay}</th>
+              <th className="border border-slate-300 p-1.5 w-32">{sdT.colTime}</th>
+              <th className="border border-slate-300 p-1.5 w-24">{sdT.colCourse}</th>
+              <th className="border border-slate-300 p-1.5">{sdT.colSubject}</th>
+              <th className="border border-slate-300 p-1.5 w-32">{sdT.colType}</th>
+            </tr>
+          </thead>
+          <tbody className="text-xs">
+            {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((dayName) => {
+              const daySlots = schedule.filter(s => s.day === dayName);
+              if (daySlots.length === 0) return null;
+              return daySlots.map((slot, sIdx) => (
+                <tr key={slot.id} className="hover:bg-slate-50">
+                  {sIdx === 0 ? (
+                    <td 
+                      className="border border-slate-300 p-1.5 font-black align-middle uppercase text-slate-800 bg-slate-50/50" 
+                      rowSpan={daySlots.length}
+                    >
+                      {LOCALIZED_DAYS[currentLang]?.[dayName] || dayName}
+                    </td>
+                  ) : null}
+                  <td className="border border-slate-300 p-1.5 font-mono font-medium text-slate-700 select-all">
+                    {slot.time}
+                  </td>
+                  <td className="border border-slate-300 p-1.5 font-mono font-bold text-slate-800 text-center">
+                    {slot.courseCode || "--"}
+                  </td>
+                  <td className="border border-slate-300 p-1.5 font-semibold text-slate-900">
+                    {slot.title}
+                  </td>
+                  <td className="border border-slate-300 p-1.5 italic text-slate-600 font-serif text-[11px]">
+                    {LOCALIZED_TYPES[currentLang]?.[slot.type] || slot.type}
+                  </td>
+                </tr>
+              ));
+            })}
+          </tbody>
+        </table>
+
+        {/* Enrolled Syllabus Grades Dossier section on print out */}
+        <div className="mb-5">
+          <h3 className="text-[11px] font-black uppercase text-slate-800 tracking-wider mb-2">
+            Enrolled Core Books & Current Mastery Progress
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            {courses.map((c: any) => (
+              <div key={c.id} className="border border-slate-200 rounded p-1.5 flex justify-between items-center text-xs">
+                <div>
+                  <span className="font-mono bg-slate-100 text-slate-700 px-1 py-0.2 rounded mr-1 text-bold font-bold text-[10px]">
+                    {c.code}
+                  </span>
+                  <span className="font-semibold text-slate-800">{c.name}</span>
+                </div>
+                <span className="font-mono font-black text-slate-900">{c.grade}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Upcoming submissions listed on print out */}
+        <div className="mb-5">
+          <h3 className="text-[11px] font-black uppercase text-slate-800 tracking-wider mb-2">
+            Pending Academic Milestones & Deliverables Roadmap
+          </h3>
+          <div className="space-y-1.5 text-xs">
+            {assignments.map((a: any) => (
+              <div key={a.id} className="border border-slate-200 rounded p-1.5 flex justify-between gap-4">
+                <div>
+                  <span className="font-mono font-bold text-slate-400 mr-1.5 text-[10px]">[{a.course}]</span>
+                  <span className="font-semibold text-slate-800">{a.name}</span>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="font-bold text-slate-700">Due: {a.due}</span>
+                  <span className="text-[10px] text-slate-400 block">Weight: {a.weight} - Status: {a.status === "submitted" ? "Submitted" : "Pending"}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Personal Custom Printed Notes */}
+        {personalRemarks && (
+          <div className="border border-slate-300 rounded p-3 mb-5 bg-slate-50/50">
+            <span className="text-[9px] font-bold uppercase text-slate-500 block mb-1">
+              Student Directives / Research Remarks
+            </span>
+            <p className="text-xs text-slate-800 italic font-medium leading-relaxed">
+              "{personalRemarks}"
+            </p>
+          </div>
+        )}
+
+        {/* Footer Seal, Signature block, validation text */}
+        <div className="border-t border-slate-300 pt-5 mt-6 flex justify-between items-start text-[9px] text-slate-500">
+          <div className="space-y-1.5 w-2/3">
+            <p className="font-bold">{sdT.officialSealDesc}</p>
+            <p className="leading-relaxed">
+              This document is generated automatically by the Brussels Academic Portal on secure web servers. Under the regulations of European Higher Education (ECTS), student identity and semester schedules are verified and registered. No handwritten seal required for general academic reference.
+            </p>
+            <p className="font-mono text-[9px] text-slate-400 mt-1">
+              Authentication hash: {Date.now().toString(16).toUpperCase()}-BIU-VERIFIED
+            </p>
+          </div>
+          <div className="text-center w-56 space-y-3">
+            <div className="border-b border-black h-10 w-44 mx-auto relative">
+              {/* Fake aesthetic signature text */}
+              <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 font-serif text-slate-400 italic text-xs">
+                Secr. Acad. BIU
+              </span>
+            </div>
+            <p className="font-black text-slate-700 uppercase font-mono tracking-tight block text-[9px]">
+              {sdT.academicOfficeSignature}
+            </p>
+          </div>
+        </div>
       </div>
 
     </div>

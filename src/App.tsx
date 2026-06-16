@@ -34,10 +34,15 @@ import {
   Eye,
   Layers,
   MapPin,
-  Download
+  Download,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 
 import { MapHoverTooltip } from './components/MapHoverTooltip';
 
@@ -69,6 +74,10 @@ import { StudentQuickLinks } from './components/StudentQuickLinks';
 import { AcademicRoadmap } from './components/AcademicRoadmap';
 import { AcademicPerformanceRadar } from './components/AcademicPerformanceRadar';
 import { StudentDashboard } from './components/StudentDashboard';
+import { FacultyDirectory } from './components/FacultyDirectory';
+import { ResearchHub } from './components/ResearchHub';
+import { CampusTour } from './components/CampusTour';
+import { AlumniNetwork } from './components/AlumniNetwork';
 
 const DEGREE_TOOLTIP_CONTENT = {
   en: "Pricing varies by degree level. Bachelor base tuition is 1000 EUR, Master base tuition is 1200 EUR, and PhD base tuition is 1400 EUR.",
@@ -152,6 +161,39 @@ const LANGUAGES = [
   { code: 'de', label: 'Deutsch', flag: '🇩🇪' }
 ];
 
+const VIDEO_TRANSLATION: Record<string, { title: string; subtitle: string; playText: string; infoText: string }> = {
+  ar: {
+    title: "جولة افتراضية في الحرم الجامعي",
+    subtitle: "شاهد كيف تبدو الدراسة الافتراضية التفاعلية",
+    playText: "تشغيل الفيديو الترحيبي",
+    infoText: "الحرم الجامعي الافتراضي"
+  },
+  en: {
+    title: "Virtual Campus Tour",
+    subtitle: "Experience our advanced digital learning environment",
+    playText: "Play Welcome Video",
+    infoText: "Virtual Campus Showcase"
+  },
+  it: {
+    title: "Tour Virtuale del Campus",
+    subtitle: "Scopri il nostro ambiente di apprendimento virtuale",
+    playText: "Riproduci Video di Benvenuto",
+    infoText: "Presentazione del Campus"
+  },
+  de: {
+    title: "Virtueller Campus-Rundgang",
+    subtitle: "Erleben Sie unsere digitale Studiums-Infrastruktur",
+    playText: "Willkommensvideo abspielen",
+    infoText: "Akademischer Rundgang"
+  },
+  fr: {
+    title: "Visite Virtuelle du Campus",
+    subtitle: "Découvrez notre écosystème d'apprentissage en ligne",
+    playText: "Visionner la Vidéo",
+    infoText: "Présentation du Campus"
+  }
+};
+
 export default function App() {
   const [currentLang, setCurrentLang] = useState('ar');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -174,26 +216,51 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Global Light/Dark Theme State using CSS variables
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+  // Global Light/Dark Theme State using CSS variables with System Sync support
+  const [themeMode, setThemeMode] = useState<'light' | 'dark' | 'system'>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('theme');
-      if (saved === 'light' || saved === 'dark') return saved;
-      const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      return systemPreference ? 'dark' : 'light';
+      const saved = localStorage.getItem('theme-mode');
+      if (saved === 'light' || saved === 'dark' || saved === 'system') {
+        return saved;
+      }
     }
-    return 'light';
+    return 'system';
   });
+
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 
   useEffect(() => {
     const root = window.document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
+
+    const applyTheme = (resolvedTheme: 'light' | 'dark') => {
+      setTheme(resolvedTheme);
+      if (resolvedTheme === 'dark') {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+      localStorage.setItem('theme', resolvedTheme);
+    };
+
+    if (themeMode === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      applyTheme(mediaQuery.matches ? 'dark' : 'light');
+
+      const handler = (e: MediaQueryListEvent) => {
+        applyTheme(e.matches ? 'dark' : 'light');
+      };
+
+      mediaQuery.addEventListener('change', handler);
+      return () => {
+        mediaQuery.removeEventListener('change', handler);
+      };
     } else {
-      root.classList.remove('dark');
+      applyTheme(themeMode);
     }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+
+    localStorage.setItem('theme-mode', themeMode);
+  }, [themeMode]);
 
   // High-Tech Interactive State variables
   const [searchQuery, setSearchQuery] = useState('');
@@ -222,6 +289,89 @@ export default function App() {
 
   const t = TRANSLATIONS[currentLang] || TRANSLATIONS.ar;
   const isRtl = t.dir === 'rtl';
+
+  // Custom Video Player states
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isVideoMuted, setIsVideoMuted] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [videoCurrentTime, setVideoCurrentTime] = useState(0);
+  const [isVideoHovered, setIsVideoHovered] = useState(false);
+
+  const togglePlayVideo = () => {
+    if (videoRef.current) {
+      if (isVideoPlaying) {
+        videoRef.current.pause();
+        setIsVideoPlaying(false);
+      } else {
+        videoRef.current.play().then(() => {
+          setIsVideoPlaying(true);
+        }).catch((err) => {
+          console.warn("Play interrupted:", err);
+        });
+      }
+    }
+  };
+
+  const toggleMuteVideo = () => {
+    if (videoRef.current) {
+      const targetMute = !isVideoMuted;
+      videoRef.current.muted = targetMute;
+      setIsVideoMuted(targetMute);
+    }
+  };
+
+  const handleVideoTimeUpdate = () => {
+    if (videoRef.current) {
+      const current = videoRef.current.currentTime;
+      const duration = videoRef.current.duration || 0;
+      setVideoCurrentTime(current);
+      if (duration > 0) {
+        setVideoProgress((current / duration) * 100);
+      }
+    }
+  };
+
+  const handleVideoLoadedMetadata = () => {
+    if (videoRef.current) {
+      setVideoDuration(videoRef.current.duration || 0);
+    }
+  };
+
+  const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (videoRef.current) {
+      const newPosPercent = parseFloat(e.target.value);
+      const duration = videoRef.current.duration || 0;
+      const newTime = (newPosPercent / 100) * duration;
+      videoRef.current.currentTime = newTime;
+      setVideoProgress(newPosPercent);
+      setVideoCurrentTime(newTime);
+    }
+  };
+
+  const handleFullscreenVideo = () => {
+    if (videoRef.current) {
+      if (videoRef.current.requestFullscreen) {
+        videoRef.current.requestFullscreen();
+      } else if ((videoRef.current as any).webkitRequestFullscreen) {
+        (videoRef.current as any).webkitRequestFullscreen();
+      } else if ((videoRef.current as any).msRequestFullscreen) {
+        (videoRef.current as any).msRequestFullscreen();
+      }
+    }
+  };
+
+  const formatVideoTime = (seconds: number) => {
+    if (isNaN(seconds)) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  const getVideoTranslation = () => {
+    return VIDEO_TRANSLATION[currentLang] || VIDEO_TRANSLATION.en;
+  };
 
   const handleDownloadTranscript = () => {
     try {
@@ -515,6 +665,44 @@ export default function App() {
     de: "Studierende"
   }[currentLang] || "تجارب الطلاب";
 
+  const LOCALIZED_NAV_ITEMS = {
+    ar: {
+      faculty: "هيئة التدريس والمجلس",
+      research: "المجلة والأكاديمية",
+      campus: "مرافق الحرم",
+      alumni: "آثار الخريجين"
+    },
+    en: {
+      faculty: "Faculty Board",
+      research: "Research Hub",
+      campus: "Campus Tour",
+      alumni: "Alumni Impact"
+    },
+    it: {
+      faculty: "Consiglio Docenti",
+      research: "Rivista Ricerca",
+      campus: "Tour Strutture",
+      alumni: "Impatto Alumni"
+    },
+    de: {
+      faculty: "Wissenschaftlicher Rat",
+      research: "Forschungszentrum",
+      campus: "Geländerundgang",
+      alumni: "Alumni-Erfolge"
+    },
+    fr: {
+      faculty: "Conseil Académique",
+      research: "Revue Scientifique",
+      campus: "Visite Campus",
+      alumni: "Réseau Alumni"
+    }
+  }[currentLang] || {
+    faculty: "هيئة التدريس والمجلس",
+    research: "المجلة والأكاديمية",
+    campus: "مرافق الحرم",
+    alumni: "آثار الخريجين"
+  };
+
   // Dynamic search and filter logic for programs
   const filteredPrograms = t.programs.filter((prog, idx) => {
     if (selectedCollege !== 'all') {
@@ -667,38 +855,100 @@ export default function App() {
             </div>
 
             {/* Desktop Nav Links */}
-            <div className="hidden lg:flex items-center gap-5 font-semibold text-gray-750 text-sm">
-              <a href="#about" className="hover:text-primary transition-colors">{t.navAbout}</a>
-              <a href="#programs" className="hover:text-primary transition-colors">{t.navPrograms}</a>
-              <a href="#pricing" className="hover:text-primary transition-colors">{t.navPricing}</a>
-              <a href="#representatives" className="hover:text-primary transition-colors">{t.navRepresentatives}</a>
-              <a href="#student-voices" className="hover:text-primary transition-colors">{studentVoicesLabel}</a>
-              <a href="#register" className="hover:text-primary transition-colors">{t.navRegister}</a>
+            <div className="hidden lg:flex items-center gap-4.5 font-semibold text-gray-750 text-[13px] xl:text-sm">
+              <a href="#about" className="hover:text-primary transition-colors shrink-0">{t.navAbout}</a>
+              <a href="#programs" className="hover:text-primary transition-colors shrink-0">{t.navPrograms}</a>
+              <a href="#faculty-directory" className="hover:text-primary transition-colors shrink-0">{LOCALIZED_NAV_ITEMS.faculty}</a>
+              <a href="#research-hub" className="hover:text-primary transition-colors shrink-0">{LOCALIZED_NAV_ITEMS.research}</a>
+              <a href="#campus-tour" className="hover:text-primary transition-colors shrink-0">{LOCALIZED_NAV_ITEMS.campus}</a>
+              <a href="#alumni-network" className="hover:text-primary transition-colors shrink-0">{LOCALIZED_NAV_ITEMS.alumni}</a>
+              <a href="#pricing" className="hover:text-primary transition-colors shrink-0">{t.navPricing}</a>
+              <a href="#representatives" className="hover:text-primary transition-colors shrink-0">{t.navRepresentatives}</a>
+              <a href="#student-voices" className="hover:text-primary transition-colors shrink-0">{studentVoicesLabel}</a>
+              <a href="#register" className="hover:text-primary transition-colors shrink-0">{t.navRegister}</a>
             </div>
 
             {/* Action Buttons (Theme Toggle + unified Language Dropdown + Desktop call-to-action) */}
             <div className="flex items-center gap-2.5 sm:gap-3.5">
-              {/* Theme Toggle Button */}
-              <button
-                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm cursor-pointer p-0"
-                title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
-                aria-label="Toggle Theme"
-              >
-                <motion.div
-                  key={theme}
-                  initial={{ rotate: theme === 'light' ? 90 : -90, scale: 0.5, opacity: 0 }}
-                  animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
-                  className="flex items-center justify-center w-full h-full"
+              {/* Theme Settings Dropdown Button */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
+                  className="flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm cursor-pointer p-0"
+                  title="Configure Appearance"
+                  aria-label="Toggle Theme Menu"
                 >
-                  {theme === 'light' ? (
-                    <Moon className="w-4.5 h-4.5 text-slate-700 -rotate-12" />
-                  ) : (
-                    <Sun className="w-4.5 h-4.5 text-amber-500" />
-                  )}
-                </motion.div>
-              </button>
+                  <motion.div
+                    key={themeMode}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex items-center justify-center w-full h-full"
+                  >
+                    {themeMode === 'light' ? (
+                      <Sun className="w-4.5 h-4.5 text-amber-500" />
+                    ) : themeMode === 'dark' ? (
+                      <Moon className="w-4.5 h-4.5 text-indigo-400" />
+                    ) : (
+                      <Laptop className="w-4.5 h-4.5 text-primary" />
+                    )}
+                  </motion.div>
+                </button>
+
+                {isThemeMenuOpen && (
+                  <>
+                    {/* Backdrop to close list when clicked outside */}
+                    <div 
+                      className="fixed inset-0 z-40 cursor-default" 
+                      onClick={() => setIsThemeMenuOpen(false)} 
+                    />
+                    <div className={`absolute ${isRtl ? 'left-0' : 'right-0'} mt-1.5 w-44 bg-white rounded-2xl shadow-xl border border-gray-100 py-1.5 z-50 transition-all`}>
+                      <p className={`px-3 py-1 text-[10px] font-black tracking-wider text-gray-400 uppercase ${textAlignment}`}>
+                        {currentLang === 'ar' ? 'المظهر' : 'Appearance'}
+                      </p>
+                      
+                      {/* Light Mode option */}
+                      <button
+                        onClick={() => {
+                          setThemeMode('light');
+                          setIsThemeMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold hover:bg-gray-50 text-gray-700 transition-colors ${themeMode === 'light' ? 'text-primary bg-primary/5' : ''} ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}
+                      >
+                        <Sun className={`w-4 h-4 ${themeMode === 'light' ? 'text-amber-500' : 'text-gray-400'}`} />
+                        <span className="flex-1">{currentLang === 'ar' ? 'وضع النهار' : 'Light Mode'}</span>
+                        {themeMode === 'light' && <span className="text-primary text-[10px]">✓</span>}
+                      </button>
+
+                      {/* Dark Mode option */}
+                      <button
+                        onClick={() => {
+                          setThemeMode('dark');
+                          setIsThemeMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold hover:bg-gray-50 text-gray-700 transition-colors ${themeMode === 'dark' ? 'text-primary bg-primary/5' : ''} ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}
+                      >
+                        <Moon className={`w-4 h-4 ${themeMode === 'dark' ? 'text-indigo-400' : 'text-gray-400'}`} />
+                        <span className="flex-1">{currentLang === 'ar' ? 'وضع الليل' : 'Dark Mode'}</span>
+                        {themeMode === 'dark' && <span className="text-primary text-[10px]">✓</span>}
+                      </button>
+
+                      {/* System Option */}
+                      <button
+                        onClick={() => {
+                          setThemeMode('system');
+                          setIsThemeMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold hover:bg-gray-50 text-gray-700 transition-colors ${themeMode === 'system' ? 'text-primary bg-primary/5' : ''} ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}
+                      >
+                        <Laptop className={`w-4 h-4 ${themeMode === 'system' ? 'text-primary' : 'text-gray-400'}`} />
+                        <span className="flex-1">{currentLang === 'ar' ? 'تزامن مع النظام' : 'Sync with System'}</span>
+                        {themeMode === 'system' && <span className="text-primary text-[10px]">✓</span>}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
 
               {/* Modern Language Select Dropdown - ONE AND ONLY ONE in the navigation */}
               <div className="relative group">
@@ -750,6 +1000,10 @@ export default function App() {
           <div className="lg:hidden bg-white border-b border-gray-100 p-4 flex flex-col gap-3 font-semibold shadow-inner mt-px animate-in slide-in-from-top-4 duration-200">
             <a href="#about" className={`text-gray-750 hover:text-primary px-2 py-1 bg-gray-50/50 rounded-lg ${textAlignment}`} onClick={() => setIsMenuOpen(false)}>{t.navAbout}</a>
             <a href="#programs" className={`text-gray-750 hover:text-primary px-2 py-1 bg-gray-50/50 rounded-lg ${textAlignment}`} onClick={() => setIsMenuOpen(false)}>{t.navPrograms}</a>
+            <a href="#faculty-directory" className={`text-gray-750 hover:text-primary px-2 py-1 bg-gray-50/50 rounded-lg ${textAlignment}`} onClick={() => setIsMenuOpen(false)}>{LOCALIZED_NAV_ITEMS.faculty}</a>
+            <a href="#research-hub" className={`text-gray-750 hover:text-primary px-2 py-1 bg-gray-50/50 rounded-lg ${textAlignment}`} onClick={() => setIsMenuOpen(false)}>{LOCALIZED_NAV_ITEMS.research}</a>
+            <a href="#campus-tour" className={`text-gray-750 hover:text-primary px-2 py-1 bg-gray-50/50 rounded-lg ${textAlignment}`} onClick={() => setIsMenuOpen(false)}>{LOCALIZED_NAV_ITEMS.campus}</a>
+            <a href="#alumni-network" className={`text-gray-750 hover:text-primary px-2 py-1 bg-gray-50/50 rounded-lg ${textAlignment}`} onClick={() => setIsMenuOpen(false)}>{LOCALIZED_NAV_ITEMS.alumni}</a>
             <a href="#pricing" className={`text-gray-750 hover:text-primary px-2 py-1 bg-gray-50/50 rounded-lg ${textAlignment}`} onClick={() => setIsMenuOpen(false)}>{t.navPricing}</a>
             <a href="#representatives" className={`text-gray-750 hover:text-primary px-2 py-1 bg-gray-50/50 rounded-lg ${textAlignment}`} onClick={() => setIsMenuOpen(false)}>{t.navRepresentatives}</a>
             <a href="#student-voices" className={`text-gray-750 hover:text-primary px-2 py-1 bg-gray-50/50 rounded-lg ${textAlignment}`} onClick={() => setIsMenuOpen(false)}>{studentVoicesLabel}</a>
@@ -859,26 +1113,171 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
-              className="relative flex justify-center lg:justify-end"
+              className="relative flex flex-col gap-6 items-stretch w-full max-w-lg mx-auto lg:ml-auto lg:mr-0"
             >
-              <div className="aspect-square w-full max-w-sm sm:max-w-md bg-white rounded-3xl p-6 shadow-2xl relative border border-gray-100 flex items-center justify-center">
+              {/* Header card with logo & brand details */}
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-gray-100 flex items-center gap-4 transition hover:shadow-2xl">
                 <img 
                   src={logoUrl} 
                   alt={t.logoText} 
-                  className="w-4/5 h-4/5 object-contain rounded-full shadow-lg border-2 border-blue-50 bg-white"
+                  className="w-14 h-14 object-contain rounded-full border border-blue-50 bg-white p-1 shadow-sm shrink-0"
                   referrerPolicy="no-referrer"
                 />
+                <div className={textAlignment}>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider font-mono leading-none">
+                    {currentLang === 'ar' ? 'مجمع البحوث الإسلامية ببروكسل' : 'Brussels Islamic Scientific Trust'}
+                  </p>
+                  <h4 className="text-sm font-black text-gray-900 tracking-tight leading-snug mt-1">
+                    {currentLang === 'ar' ? 'جامعة بروكسل الإسلامية • الحرم الافتراضي' : 'Brussels Islamic University • Digital Campus'}
+                  </h4>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="text-[9.5px] text-emerald-600 font-extrabold uppercase font-mono">
+                      {currentLang === 'ar' ? 'الحرم التفاعلي نشط' : 'Interactive Hub Online'}
+                    </span>
+                  </div>
+                </div>
               </div>
 
+              {/* Seamless Custom Widescreen Video Player */}
+              <motion.div 
+                initial={{ opacity: 0, y: 35 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.85, ease: "easeOut" }}
+                className="bg-white/90 backdrop-blur-sm rounded-3xl p-3 sm:p-4 shadow-2xl relative border border-gray-100"
+                onMouseEnter={() => setIsVideoHovered(true)}
+                onMouseLeave={() => setIsVideoHovered(false)}
+                id="virtual-tour-player"
+              >
+                <div className="relative aspect-video w-full bg-slate-950 rounded-2xl overflow-hidden group shadow-lg border border-slate-900">
+                  {/* Actual HTML5 Video Element */}
+                  <video
+                    ref={videoRef}
+                    onClick={togglePlayVideo}
+                    onTimeUpdate={handleVideoTimeUpdate}
+                    onLoadedMetadata={handleVideoLoadedMetadata}
+                    src="https://assets.mixkit.co/videos/preview/mixkit-group-of-students-studying-with-laptops-on-campus-41551-large.mp4"
+                    className="w-full h-full object-cover cursor-pointer"
+                    loop
+                    playsInline
+                    preload="metadata"
+                  />
+
+                  {/* Pre-play thumbnail overlay when not playing */}
+                  {!isVideoPlaying && videoRef.current && videoRef.current.currentTime === 0 && (
+                    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80')` }}>
+                      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[1px]"></div>
+                    </div>
+                  )}
+
+                  {/* Big Play Button Overlay */}
+                  <AnimatePresence>
+                    {!isVideoPlaying && (
+                      <motion.button
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        onClick={togglePlayVideo}
+                        className="absolute inset-0 m-auto w-14 h-14 flex items-center justify-center bg-primary rounded-full shadow-2xl text-white transition hover:bg-primary/90 focus:outline-none z-10 cursor-pointer"
+                        title={getVideoTranslation().playText}
+                      >
+                        <div className="relative flex items-center justify-center">
+                          <span className="animate-ping absolute inline-flex h-16 w-16 rounded-full bg-primary/25 opacity-75"></span>
+                          <Play className="w-5 h-5 fill-white translate-x-0.5" />
+                        </div>
+                      </motion.button>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Header overlay for the tour title */}
+                  <div className={`absolute top-0 inset-x-0 p-3 bg-gradient-to-b from-slate-950/90 via-slate-950/40 to-transparent flex justify-between items-center text-white ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <div className={textAlignment}>
+                      <h5 className="text-[11px] font-black tracking-tight">{getVideoTranslation().title}</h5>
+                      <p className="text-[8.5px] text-slate-300 opacity-90 leading-none">{getVideoTranslation().subtitle}</p>
+                    </div>
+                    <span className="bg-primary px-2 py-0.5 rounded text-[8px] font-mono font-black uppercase tracking-wider text-white">
+                      {getVideoTranslation().infoText}
+                    </span>
+                  </div>
+
+                  {/* Custom Controls Bar */}
+                  <div className={`absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/95 via-slate-950/80 to-transparent p-3 flex flex-col gap-1.5 transition-all duration-300 ${isVideoHovered || !isVideoPlaying ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}>
+                    
+                    {/* Scrub bar */}
+                    <div className="flex items-center gap-2 w-full">
+                      <span className="text-[9px] font-mono text-slate-300 shrink-0 select-none">
+                        {formatVideoTime(videoCurrentTime)}
+                      </span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={videoProgress}
+                        onChange={handleProgressChange}
+                        className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-primary hover:bg-slate-700 transition"
+                      />
+                      <span className="text-[9px] font-mono text-slate-300 shrink-0 select-none">
+                        {formatVideoTime(videoDuration)}
+                      </span>
+                    </div>
+
+                    {/* Low bar actions */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {/* Play/Pause icon button */}
+                        <button
+                          type="button"
+                          onClick={togglePlayVideo}
+                          className="text-white hover:text-primary transition focus:outline-none cursor-pointer"
+                          title={isVideoPlaying ? 'Pause' : 'Play'}
+                        >
+                          {isVideoPlaying ? (
+                            <Pause className="w-3.5 h-3.5 fill-white" />
+                          ) : (
+                            <Play className="w-3.5 h-3.5 fill-white" />
+                          )}
+                        </button>
+
+                        {/* Mute toggle button */}
+                        <button
+                          type="button"
+                          onClick={toggleMuteVideo}
+                          className="text-white hover:text-primary transition focus:outline-none cursor-pointer"
+                          title={isVideoMuted ? 'Unmute' : 'Mute'}
+                        >
+                          {isVideoMuted ? (
+                            <VolumeX className="w-3.5 h-3.5" />
+                          ) : (
+                            <Volume2 className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Screen / Expand triggers */}
+                      <button
+                        type="button"
+                        onClick={handleFullscreenVideo}
+                        className="text-white hover:text-primary transition focus:outline-none cursor-pointer"
+                        title="Fullscreen"
+                      >
+                        <Maximize className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
               {/* Dynamic Overlay Floating Badge */}
-              <div className={`absolute -bottom-6 ${isRtl ? '-left-4' : '-right-4'} bg-white p-5 rounded-2xl shadow-xl hidden md:block border border-gray-100`}>
+              <div className="bg-white p-4.5 rounded-2xl shadow-xl border border-gray-100">
                 <div className={`flex items-center gap-4 ${flexNavDirection}`}>
-                  <div className="bg-primary/15 p-3 rounded-full text-primary">
+                  <div className="bg-primary/15 p-3 rounded-full text-primary shrink-0">
                     <Calendar className="w-6 h-6" />
                   </div>
                   <div className={textAlignment}>
                     <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">{t.heroBadgeInteractiveTitle}</p>
-                    <p className="text-lg font-extrabold text-primary">{t.heroBadgeInteractiveDesc}</p>
+                    <p className="text-lg font-extrabold text-primary leading-tight mt-0.5">{t.heroBadgeInteractiveDesc}</p>
                   </div>
                 </div>
               </div>
@@ -2294,6 +2693,18 @@ export default function App() {
       </section>
 
       <StudentVoices currentLang={currentLang} isRtl={isRtl} />
+
+      {/* 1. Academic Faculty Directory & Scholars Board */}
+      <FacultyDirectory currentLang={currentLang} isRtl={isRtl} />
+
+      {/* 2. Peer-Reviewed Academic Research Hub */}
+      <ResearchHub currentLang={currentLang} isRtl={isRtl} />
+
+      {/* 3. Interactive Brussels Campus & Facility Guide */}
+      <CampusTour currentLang={currentLang} isRtl={isRtl} />
+
+      {/* 4. Global Alumni Impact Association */}
+      <AlumniNetwork currentLang={currentLang} isRtl={isRtl} />
 
       {/* Interactive Admission Request Form Section */}
       <section id="admission-portal" className="py-24 bg-slate-900 text-white relative border-t border-b border-slate-800">
