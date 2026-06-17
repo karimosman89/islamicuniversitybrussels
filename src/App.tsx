@@ -194,9 +194,132 @@ const VIDEO_TRANSLATION: Record<string, { title: string; subtitle: string; playT
   }
 };
 
+const DROPDOWNS_TRANSLATION: Record<string, {
+  admissionsTitle: string;
+  campusLifeTitle: string;
+  pricingLabel: string;
+  pricingDesc: string;
+  registerLabel: string;
+  registerDesc: string;
+  facultyLabel: string;
+  facultyDesc: string;
+  researchLabel: string;
+  researchDesc: string;
+  campusLabel: string;
+  campusDesc: string;
+  alumniLabel: string;
+  alumniDesc: string;
+  repsLabel: string;
+  repsDesc: string;
+  voicesLabel: string;
+  voicesDesc: string;
+}> = {
+  ar: {
+    admissionsTitle: "القبول والتسجيل",
+    campusLifeTitle: "الحياة الجامعية",
+    pricingLabel: "الرسوم والمنح والخصومات",
+    pricingDesc: "تفاصيل الرسوم الدراسية وخيارات تقسيط الرسوم",
+    registerLabel: "خطوات الالتحاق والتسجيل",
+    registerDesc: "دليل التسجيل والقبول للطلاب الجدد",
+    facultyLabel: "الهيئة التدريسية والأكاديمية",
+    facultyDesc: "تعرف على السادة عمداء الكليات وأعضاء المجلس العلمي",
+    researchLabel: "المجلة العلمية والأبحاث",
+    researchDesc: "الأطروحات والمجلة الأكاديمية المحكمة للأبحاث الصادرة",
+    campusLabel: "مرافق الحرم الجامعي",
+    campusDesc: "جولة تفاعلية افتراضية في النظم ومرافق التعليم",
+    alumniLabel: "آثار وخريجو الجامعة في أوروبا",
+    alumniDesc: "قصص النجاح والأثر الأكاديمي والمهني لخريجي بروكسل",
+    repsLabel: "مكتب وممثلو الجامعة",
+    repsDesc: "التواصل مع الممثلين الإقليميين في الدول المختلفة",
+    voicesLabel: "تجارب وآراء الطلاب",
+    voicesDesc: "ماذا يقول طلابنا من مختلف بقاع الأرض عن تعليمنا"
+  },
+  en: {
+    admissionsTitle: "Admissions",
+    campusLifeTitle: "Campus Life",
+    pricingLabel: "Fees & Scholarships",
+    pricingDesc: "Detailed tuition pricing and installment schemes",
+    registerLabel: "How to Enroll & Register",
+    registerDesc: "A complete step-by-step registration roadmap",
+    facultyLabel: "Academic Board & Faculty",
+    facultyDesc: "Connect with our scientific supervisors and professors",
+    researchLabel: "Scientific Journal & Hub",
+    researchDesc: "Explore peer-reviewed research and Publications",
+    campusLabel: "State-of-the-Art Facilities",
+    campusDesc: "Interactive virtual tour of our innovative digital campus",
+    alumniLabel: "Alumni Impact in Europe",
+    alumniDesc: "Success stories of graduates pursuing global achievements",
+    repsLabel: "Regional Representatives",
+    repsDesc: "Get localized support through accredited representatives",
+    voicesLabel: "Student Experiences & voices",
+    voicesDesc: "Authentic reviews from our global online learner base"
+  },
+  it: {
+    admissionsTitle: "Ammissioni",
+    campusLifeTitle: "Vita del Campus",
+    pricingLabel: "Tasse & Agevolazioni",
+    pricingDesc: "Prezzi dettagliati e piani di pagamento flessibili",
+    registerLabel: "Istruzioni per l'Iscrizione",
+    registerDesc: "Guida alla registrazione passo dopo passo",
+    facultyLabel: "Corpo Docenti e Consiglio",
+    facultyDesc: "Incontra i nostri autorevoli professori ed esperti",
+    researchLabel: "Journal Scientifico",
+    researchDesc: "Sfoglia articoli accademici e progetti innovativi",
+    campusLabel: "Tour delle Strutture",
+    campusDesc: "Visita virtuale dell'ecosistema digitale di fiducia",
+    alumniLabel: "Successo dei Laureati",
+    alumniDesc: "Le storie dei nostri alunni inseriti in contesti europei",
+    repsLabel: "Rappresentanti di Zona",
+    repsDesc: "Contatta i referenti per un supporto mirato",
+    voicesLabel: "Recensioni degli Studenti",
+    voicesDesc: "Studi flessibili descritti da studenti reali"
+  },
+  de: {
+    admissionsTitle: "Zulassung",
+    campusLifeTitle: "Campusleben",
+    pricingLabel: "Gebühren & Raten",
+    pricingDesc: "Detaillierte Kostenstruktur und Rabattoptionen",
+    registerLabel: "Einschreibungsprozess",
+    registerDesc: "Schritt-für-Schritt-Anleitung für Bewerber",
+    facultyLabel: "Wissenschaftlicher Rat",
+    facultyDesc: "Treffen Sie hochqualifizierte Dozenten und Berater",
+    researchLabel: "Forschung & Journal",
+    researchDesc: "Publikationen, Dissertationen und Fachaufsätze",
+    campusLabel: "Virtueller Campusrundgang",
+    campusDesc: "Entdecken Sie unsere fortschrittliche Digitalplattform",
+    alumniLabel: "Alumni-Engagement",
+    alumniDesc: "Erfolgsberichte und wissenschaftliches Fortkommen",
+    repsLabel: "Lokale Landesvertreter",
+    repsDesc: "Finden Sie zugelassene Kontaktpersonen vor Ort",
+    voicesLabel: "Persönliche Erfahrungen",
+    voicesDesc: "Was Studierende über das flexible Onlinestudium sagen"
+  },
+  fr: {
+    admissionsTitle: "Admissions",
+    campusLifeTitle: "Vie du Campus",
+    pricingLabel: "Tarifs & Réductions",
+    pricingDesc: "Détails des frais d'études et de scolarité facilités",
+    registerLabel: "S'inscrire à l'Université",
+    registerDesc: "La feuille de route d'inscription des nouveaux candidats",
+    facultyLabel: "Conseil Académique",
+    facultyDesc: "Rencontrez notre solide équipe professorale",
+    researchLabel: "Revue Scientifique",
+    researchDesc: "Consultez les publications et mémoires académiques",
+    campusLabel: "Infrastructures Digitales",
+    campusDesc: "Rundown et visite interactive des espaces connectés",
+    alumniLabel: "Réseau et Succès Alumni",
+    alumniDesc: "Parcours et opportunités professionnelles de nos lauréats",
+    repsLabel: "Bureaux et Représentants",
+    repsDesc: "Assistance personnalisée près de chez vous",
+    voicesLabel: "Déclarations d'Étudiants",
+    voicesDesc: "Témoignages authentiques sur l'apprentissage en continu"
+  }
+};
+
 export default function App() {
   const [currentLang, setCurrentLang] = useState('ar');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<'admissions' | 'campus' | null>(null);
 
   // Rotating Academic Background Images (updated each 5s)
   const ACADEMIC_BG_IMAGES = [
@@ -841,31 +964,203 @@ export default function App() {
           <div className={`flex justify-between h-20 items-center ${flexNavDirection}`}>
             
             {/* Logo and branding */}
-            <div className={`flex items-center gap-3 ${flexNavDirection}`}>
+            <div className={`flex items-center gap-3 ${flexNavDirection} shrink-0`}>
               <img 
                 src={logoUrl} 
                 alt={t.logoText} 
-                className="w-12 h-12 rounded-full object-cover shadow-md border-2 border-primary/20"
+                className="w-12 h-12 rounded-full object-cover shadow-md border-2 border-primary/20 shrink-0"
                 referrerPolicy="no-referrer"
               />
-              <div className={textAlignment}>
-                <span className="text-sm md:text-[17px] font-extrabold text-primary block leading-tight">{t.logoText}</span>
-                <span className="text-[10px] md:text-xs text-gray-500 font-bold block mt-0.5">{t.subtitleText}</span>
+              <div className={`${textAlignment} shrink-0`}>
+                <span className="text-sm md:text-[17px] font-extrabold text-primary block leading-tight whitespace-nowrap">{t.logoText}</span>
+                <span className="text-[10px] md:text-xs text-gray-500 font-bold block mt-0.5 whitespace-nowrap">{t.subtitleText}</span>
               </div>
             </div>
 
-            {/* Desktop Nav Links */}
-            <div className="hidden lg:flex items-center gap-4.5 font-semibold text-gray-750 text-[13px] xl:text-sm">
-              <a href="#about" className="hover:text-primary transition-colors shrink-0">{t.navAbout}</a>
-              <a href="#programs" className="hover:text-primary transition-colors shrink-0">{t.navPrograms}</a>
-              <a href="#faculty-directory" className="hover:text-primary transition-colors shrink-0">{LOCALIZED_NAV_ITEMS.faculty}</a>
-              <a href="#research-hub" className="hover:text-primary transition-colors shrink-0">{LOCALIZED_NAV_ITEMS.research}</a>
-              <a href="#campus-tour" className="hover:text-primary transition-colors shrink-0">{LOCALIZED_NAV_ITEMS.campus}</a>
-              <a href="#alumni-network" className="hover:text-primary transition-colors shrink-0">{LOCALIZED_NAV_ITEMS.alumni}</a>
-              <a href="#pricing" className="hover:text-primary transition-colors shrink-0">{t.navPricing}</a>
-              <a href="#representatives" className="hover:text-primary transition-colors shrink-0">{t.navRepresentatives}</a>
-              <a href="#student-voices" className="hover:text-primary transition-colors shrink-0">{studentVoicesLabel}</a>
-              <a href="#register" className="hover:text-primary transition-colors shrink-0">{t.navRegister}</a>
+            {/* Desktop Nav Links (Cleanly Organized & Compacted for Professionalism) */}
+            <div className={`hidden lg:flex items-center gap-5 xl:gap-7 font-bold text-gray-750 text-xs xl:text-sm ${flexNavDirection}`}>
+              <a href="#about" className="hover:text-primary transition-colors shrink-0 whitespace-nowrap">{t.navAbout}</a>
+              <a href="#programs" className="hover:text-primary transition-colors shrink-0 whitespace-nowrap">{t.navPrograms}</a>
+              
+              {/* Admissions Dropdown */}
+              <div 
+                className="relative"
+                onMouseEnter={() => setActiveDropdown('admissions')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <button 
+                  className={`flex items-center gap-1 hover:text-primary transition-colors focus:outline-none shrink-0 cursor-pointer whitespace-nowrap ${activeDropdown === 'admissions' ? 'text-primary' : ''} ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}
+                  onClick={() => setActiveDropdown(activeDropdown === 'admissions' ? null : 'admissions')}
+                  aria-expanded={activeDropdown === 'admissions'}
+                >
+                  <span>{DROPDOWNS_TRANSLATION[currentLang]?.admissionsTitle || DROPDOWNS_TRANSLATION.en.admissionsTitle}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${activeDropdown === 'admissions' ? 'rotate-180 text-primary' : 'text-gray-400'}`} />
+                </button>
+
+                <AnimatePresence>
+                  {activeDropdown === 'admissions' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                      transition={{ duration: 0.18, ease: "easeOut" }}
+                      className={`absolute ${isRtl ? 'right-0' : 'left-0'} mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 z-50`}
+                    >
+                      <div className={`px-4 py-2 border-b border-gray-100 opacity-75 ${textAlignment}`}>
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{DROPDOWNS_TRANSLATION[currentLang]?.admissionsTitle || DROPDOWNS_TRANSLATION.en.admissionsTitle}</span>
+                      </div>
+                      
+                      <div className="p-1.5 flex flex-col gap-1 mt-1.5">
+                        <a 
+                          href="#pricing" 
+                          onClick={() => setActiveDropdown(null)}
+                          className={`flex items-start gap-3 p-2.5 rounded-xl hover:bg-primary/5 transition-colors group ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}
+                        >
+                          <span className="bg-amber-500/10 p-2 rounded-lg text-amber-600 shrink-0 mt-0.5 group-hover:bg-amber-500/15">
+                            <GraduationCap className="w-4 h-4" />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold text-gray-900 group-hover:text-primary transition-colors">{DROPDOWNS_TRANSLATION[currentLang]?.pricingLabel}</div>
+                            <div className="text-[9.5px] text-gray-500 mt-0.5 leading-snug line-clamp-1">{DROPDOWNS_TRANSLATION[currentLang]?.pricingDesc}</div>
+                          </div>
+                        </a>
+
+                        <a 
+                          href="#register" 
+                          onClick={() => setActiveDropdown(null)}
+                          className={`flex items-start gap-3 p-2.5 rounded-xl hover:bg-primary/5 transition-colors group ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}
+                        >
+                          <span className="bg-emerald-500/10 p-2 rounded-lg text-emerald-600 shrink-0 mt-0.5 group-hover:bg-emerald-500/15">
+                            <FileCheck className="w-4 h-4" />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold text-gray-900 group-hover:text-primary transition-colors">{DROPDOWNS_TRANSLATION[currentLang]?.registerLabel}</div>
+                            <div className="text-[9.5px] text-gray-500 mt-0.5 leading-snug line-clamp-1">{DROPDOWNS_TRANSLATION[currentLang]?.registerDesc}</div>
+                          </div>
+                        </a>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Campus Life Dropdown */}
+              <div 
+                className="relative"
+                onMouseEnter={() => setActiveDropdown('campus')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <button 
+                  className={`flex items-center gap-1 hover:text-primary transition-colors focus:outline-none shrink-0 cursor-pointer whitespace-nowrap ${activeDropdown === 'campus' ? 'text-primary' : ''} ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}
+                  onClick={() => setActiveDropdown(activeDropdown === 'campus' ? null : 'campus')}
+                  aria-expanded={activeDropdown === 'campus'}
+                >
+                  <span>{DROPDOWNS_TRANSLATION[currentLang]?.campusLifeTitle || DROPDOWNS_TRANSLATION.en.campusLifeTitle}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${activeDropdown === 'campus' ? 'rotate-180 text-primary' : 'text-gray-400'}`} />
+                </button>
+
+                <AnimatePresence>
+                  {activeDropdown === 'campus' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                      transition={{ duration: 0.18, ease: "easeOut" }}
+                      className={`absolute ${isRtl ? 'right-0' : 'left-0'} mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 z-50`}
+                    >
+                      <div className={`px-4 py-2 border-b border-gray-100 opacity-75 ${textAlignment}`}>
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{DROPDOWNS_TRANSLATION[currentLang]?.campusLifeTitle || DROPDOWNS_TRANSLATION.en.campusLifeTitle}</span>
+                      </div>
+                      
+                      <div className="p-1.5 flex flex-col gap-1 mt-1.5 max-h-[380px] overflow-y-auto">
+                        <a 
+                          href="#faculty-directory" 
+                          onClick={() => setActiveDropdown(null)}
+                          className={`flex items-start gap-3 p-2 rounded-xl hover:bg-primary/5 transition-colors group ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}
+                        >
+                          <span className="bg-blue-500/10 p-2 rounded-lg text-blue-600 shrink-0 mt-0.5 group-hover:bg-blue-500/15">
+                            <Users className="w-3.5 h-3.5" />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-[11.5px] font-bold text-gray-900 group-hover:text-primary transition-colors">{DROPDOWNS_TRANSLATION[currentLang]?.facultyLabel}</div>
+                            <div className="text-[9px] text-gray-500 mt-0.5 leading-snug line-clamp-1">{DROPDOWNS_TRANSLATION[currentLang]?.facultyDesc}</div>
+                          </div>
+                        </a>
+
+                        <a 
+                          href="#research-hub" 
+                          onClick={() => setActiveDropdown(null)}
+                          className={`flex items-start gap-3 p-2 rounded-xl hover:bg-primary/5 transition-colors group ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}
+                        >
+                          <span className="bg-indigo-500/10 p-2 rounded-lg text-indigo-600 shrink-0 mt-0.5 group-hover:bg-indigo-500/15">
+                            <BookOpen className="w-3.5 h-3.5" />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-[11.5px] font-bold text-gray-900 group-hover:text-primary transition-colors">{DROPDOWNS_TRANSLATION[currentLang]?.researchLabel}</div>
+                            <div className="text-[9px] text-gray-500 mt-0.5 leading-snug line-clamp-1">{DROPDOWNS_TRANSLATION[currentLang]?.researchDesc}</div>
+                          </div>
+                        </a>
+
+                        <a 
+                          href="#campus-tour" 
+                          onClick={() => setActiveDropdown(null)}
+                          className={`flex items-start gap-3 p-2 rounded-xl hover:bg-primary/5 transition-colors group ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}
+                        >
+                          <span className="bg-purple-500/10 p-2 rounded-lg text-purple-600 shrink-0 mt-0.5 group-hover:bg-purple-500/15">
+                            <Tv className="w-3.5 h-3.5" />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-[11.5px] font-bold text-gray-900 group-hover:text-primary transition-colors">{DROPDOWNS_TRANSLATION[currentLang]?.campusLabel}</div>
+                            <div className="text-[9px] text-gray-500 mt-0.5 leading-snug line-clamp-1">{DROPDOWNS_TRANSLATION[currentLang]?.campusDesc}</div>
+                          </div>
+                        </a>
+
+                        <a 
+                          href="#alumni-network" 
+                          onClick={() => setActiveDropdown(null)}
+                          className={`flex items-start gap-3 p-2 rounded-xl hover:bg-primary/5 transition-colors group ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}
+                        >
+                          <span className="bg-teal-500/10 p-2 rounded-lg text-teal-600 shrink-0 mt-0.5 group-hover:bg-teal-500/15">
+                            <Award className="w-3.5 h-3.5" />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-[11.5px] font-bold text-gray-900 group-hover:text-primary transition-colors">{DROPDOWNS_TRANSLATION[currentLang]?.alumniLabel}</div>
+                            <div className="text-[9px] text-gray-500 mt-0.5 leading-snug line-clamp-1">{DROPDOWNS_TRANSLATION[currentLang]?.alumniDesc}</div>
+                          </div>
+                        </a>
+
+                        <a 
+                          href="#representatives" 
+                          onClick={() => setActiveDropdown(null)}
+                          className={`flex items-start gap-3 p-2 rounded-xl hover:bg-primary/5 transition-colors group ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}
+                        >
+                          <span className="bg-cyan-500/10 p-2 rounded-lg text-cyan-600 shrink-0 mt-0.5 group-hover:bg-cyan-500/15">
+                            <Globe className="w-3.5 h-3.5" />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-[11.5px] font-bold text-gray-900 group-hover:text-primary transition-colors">{DROPDOWNS_TRANSLATION[currentLang]?.repsLabel}</div>
+                            <div className="text-[9px] text-gray-500 mt-0.5 leading-snug line-clamp-1">{DROPDOWNS_TRANSLATION[currentLang]?.repsDesc}</div>
+                          </div>
+                        </a>
+
+                        <a 
+                          href="#student-voices" 
+                          onClick={() => setActiveDropdown(null)}
+                          className={`flex items-start gap-3 p-2 rounded-xl hover:bg-primary/5 transition-colors group ${isRtl ? 'flex-row-reverse text-right' : 'text-left'}`}
+                        >
+                          <span className="bg-sky-500/10 p-2 rounded-lg text-sky-600 shrink-0 mt-0.5 group-hover:bg-sky-500/15">
+                            <HelpCircle className="w-3.5 h-3.5" />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-[11.5px] font-bold text-gray-900 group-hover:text-primary transition-colors">{DROPDOWNS_TRANSLATION[currentLang]?.voicesLabel}</div>
+                            <div className="text-[9px] text-gray-500 mt-0.5 leading-snug line-clamp-1">{DROPDOWNS_TRANSLATION[currentLang]?.voicesDesc}</div>
+                          </div>
+                        </a>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
             {/* Action Buttons (Theme Toggle + unified Language Dropdown + Desktop call-to-action) */}
@@ -2278,7 +2573,7 @@ export default function App() {
                         <div className="border-t border-slate-800 my-1 pb-1"></div>
                         <div className="font-semibold text-gray-200">{t.representatives[hoveredNodeId].name}</div>
                         <div className="text-[10px] text-gray-400 mt-0.5">{t.representatives[hoveredNodeId].role}</div>
-                        <div className="text-[10px] text-amber-400 font-bold mt-1.5 flex items-center gap-1 font-mono">
+                        <div className="text-[10px] text-amber-400 font-bold mt-1.5 flex items-center gap-1 font-mono" dir="ltr">
                           <Phone className="w-3 h-3 text-amber-500" />
                           <span>{t.representatives[hoveredNodeId].phone}</span>
                         </div>
@@ -2482,7 +2777,7 @@ export default function App() {
                           </div>
                           <div className={textAlignment}>
                             <p className="text-xs font-extrabold text-gray-800">{currentLang === 'ar' ? 'رقم الاتصال المباشر المعتمد' : 'Verified Direct Contact Phone'}</p>
-                            <p className="text-[11px] font-mono text-gray-550 font-bold tracking-tight mt-0.5">{rep.phone}</p>
+                            <p className="text-[11px] font-mono text-gray-550 font-bold tracking-tight mt-0.5" dir="ltr">{rep.phone}</p>
                           </div>
                         </div>
                       </div>
@@ -2797,7 +3092,7 @@ export default function App() {
                     <MessageCircle className="text-emerald-450 text-emerald-450 group-hover:scale-110 transition-transform flex-shrink-0" />
                     <div className={textAlignment}>
                       <p className="text-[9px] text-gray-500 uppercase font-bold">{t.channelWa1}</p>
-                      <p className="font-mono font-bold text-xs text-emerald-300 mt-0.5">+39 351 853 0537</p>
+                      <p className="font-mono font-bold text-xs text-emerald-300 mt-0.5" dir="ltr">+39 351 853 0537</p>
                     </div>
                   </a>
 
@@ -2805,7 +3100,7 @@ export default function App() {
                     <MessageCircle className="text-emerald-450 text-emerald-450 group-hover:scale-110 transition-transform flex-shrink-0" />
                     <div className={textAlignment}>
                       <p className="text-[9px] text-gray-500 uppercase font-bold">{t.channelWa2}</p>
-                      <p className="font-mono font-bold text-xs text-emerald-300 mt-0.5">+39 320 191 6297</p>
+                      <p className="font-mono font-bold text-xs text-emerald-300 mt-0.5" dir="ltr">+39 320 191 6297</p>
                     </div>
                   </a>
                 </div>
@@ -2815,7 +3110,7 @@ export default function App() {
                     <Phone className="text-blue-400 group-hover:scale-110 transition-transform flex-shrink-0" />
                     <div className={textAlignment}>
                       <p className="text-[9px] text-gray-500 uppercase font-bold">{t.channelPhone}</p>
-                      <p className="font-mono font-bold text-xs text-blue-300 mt-0.5">+39 320 191 6297</p>
+                      <p className="font-mono font-bold text-xs text-blue-300 mt-0.5" dir="ltr">+39 320 191 6297</p>
                     </div>
                   </a>
 
@@ -2881,7 +3176,7 @@ export default function App() {
 
           <div className={`flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-bold text-gray-400 ${flexNavDirection}`}>
             <p>{t.footerCopyright}</p>
-            <p className="flex items-center gap-1">
+            <p className="flex items-center gap-1" style={{ direction: 'ltr' }}>
               <span>{t.directorLocation}</span>
               <span>•</span>
               <span>WhatsApp Admin: +39 351 853 0537</span>

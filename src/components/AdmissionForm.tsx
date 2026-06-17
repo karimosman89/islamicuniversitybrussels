@@ -331,16 +331,16 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
       size: `${(f.size / (1024 * 1024)).toFixed(2)} MB`,
       type: f.type || "application/pdf"
     }));
-    setFormData(prev => ({
+    setFormData((prev: { uploadedFiles: any; }) => ({
       ...prev,
       uploadedFiles: [...prev.uploadedFiles, ...fresh]
     }));
   };
 
   const removeFile = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev: { uploadedFiles: any[]; }) => ({
       ...prev,
-      uploadedFiles: prev.uploadedFiles.filter((_, i) => i !== index)
+      uploadedFiles: prev.uploadedFiles.filter((_: any, i: number) => i !== index)
     }));
   };
 
@@ -1217,7 +1217,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                           type="text"
                           required
                           value={formData.fullName}
-                          onChange={e => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                          onChange={e => setFormData((prev: any) => ({ ...prev, fullName: e.target.value }))}
                           placeholder={isRtl ? "مثال: عبد الرحمن بن أحمد السعدي" : "e.g. Abdurahman Ahmed Al-Saadi"}
                           className={`w-full bg-slate-950/35 border ${errors.fullName ? 'border-red-500/50' : 'border-slate-800 focus:border-primary'} pl-10 pr-4 py-3 rounded-xl text-xs text-white focus:outline-none`}
                         />
@@ -1236,7 +1236,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                           type="email"
                           required
                           value={formData.email}
-                          onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                          onChange={e => setFormData((prev: any) => ({ ...prev, email: e.target.value }))}
                           placeholder="student@example.com"
                           className={`w-full bg-slate-950/35 border ${errors.email ? 'border-red-500/50' : 'border-slate-800 focus:border-primary'} pl-10 pr-4 py-3 rounded-xl text-xs text-white focus:outline-none`}
                         />
@@ -1255,9 +1255,10 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                           type="tel"
                           required
                           value={formData.phone}
-                          onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                          onChange={e => setFormData((prev: any) => ({ ...prev, phone: e.target.value }))}
                           placeholder="+966 50 •••••••"
-                          className={`w-full bg-slate-950/35 border ${errors.phone ? 'border-red-500/50' : 'border-slate-800 focus:border-primary'} pl-10 pr-4 py-3 rounded-xl text-xs text-white focus:outline-none`}
+                          dir="ltr"
+                          className={`w-full bg-slate-950/35 border ${errors.phone ? 'border-red-500/50' : 'border-slate-800 focus:border-primary'} pl-10 pr-4 py-3 rounded-xl text-xs text-white focus:outline-none text-start`}
                         />
                       </div>
                       {errors.phone && <p className="text-[10px] text-red-400 font-bold mt-1.5">{errors.phone}</p>}
@@ -1274,7 +1275,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                           type="text"
                           required
                           value={formData.country}
-                          onChange={e => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                          onChange={e => setFormData((prev: any) => ({ ...prev, country: e.target.value }))}
                           placeholder={isRtl ? "مثال: المملكة العربية السعودية، فرنسا، تركيا" : "e.g. Saudi Arabia, France, Turkey"}
                           className={`w-full bg-slate-950/35 border ${errors.country ? 'border-red-500/50' : 'border-slate-800 focus:border-primary'} pl-10 pr-4 py-3 rounded-xl text-xs text-white focus:outline-none`}
                         />
@@ -1325,7 +1326,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                         <button
                           key={d.code}
                           type="button"
-                          onClick={() => setFormData(p => ({ ...p, degree: d.code as any }))}
+                          onClick={() => setFormData((p: any) => ({ ...p, degree: d.code as any }))}
                           className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${formData.degree === d.code ? 'bg-primary/20 border-primary text-white scale-[1.01]' : 'bg-slate-950/35 border-slate-800 text-slate-400 hover:border-slate-700'}`}
                         >
                           <p className="font-extrabold text-[11px] sm:text-xs">{d.title}</p>
@@ -1345,7 +1346,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                         <button
                           key={idx}
                           type="button"
-                          onClick={() => setFormData(p => ({ ...p, collegeIdx: idx, specialtyIdx: 0 }))}
+                          onClick={() => setFormData((p: any) => ({ ...p, collegeIdx: idx, specialtyIdx: 0 }))}
                           className={`w-full p-3 px-4 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${formData.collegeIdx === idx ? 'bg-slate-850/70 border-emerald-500/40 text-white' : 'bg-slate-950/35 border-slate-800 text-slate-400 hover:border-slate-755'}`}
                         >
                           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse w-full text-right' : 'w-full text-left'}`}>
@@ -1372,7 +1373,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                     </label>
                     <select
                       value={formData.specialtyIdx}
-                      onChange={e => setFormData(prev => ({ ...prev, specialtyIdx: Number(e.target.value) }))}
+                      onChange={e => setFormData((prev: any) => ({ ...prev, specialtyIdx: Number(e.target.value) }))}
                       className="w-full bg-slate-950/35 border border-slate-800 focus:border-primary p-3 rounded-xl text-xs text-white focus:outline-none"
                     >
                       {(isRtl 
@@ -1445,7 +1446,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                           <button
                             key={sch.type}
                             type="button"
-                            onClick={() => setFormData(p => ({ ...p, scholarshipType: sch.type as any }))}
+                            onClick={() => setFormData((p: any) => ({ ...p, scholarshipType: sch.type as any }))}
                             className={`w-full p-3 px-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer relative overflow-hidden group ${isSelected ? sch.activeColor : sch.color}`}
                           >
                             <div className="flex items-center gap-2 mb-1 w-full justify-between">
@@ -1522,14 +1523,14 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                       <div className="flex items-center justify-center gap-2">
                         <button
                           type="button"
-                          onClick={() => setFormData(p => ({ ...p, isMemorizer: true }))}
+                          onClick={() => setFormData((p: any) => ({ ...p, isMemorizer: true }))}
                           className={`p-2 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${formData.isMemorizer ? 'bg-amber-500 text-slate-950' : 'bg-slate-900 border border-slate-800 text-slate-400'}`}
                         >
                           {isRtl ? "نعم، حافظ" : "Yes, Memorizer"}
                         </button>
                         <button
                           type="button"
-                          onClick={() => setFormData(p => ({ ...p, isMemorizer: false }))}
+                          onClick={() => setFormData((p: any) => ({ ...p, isMemorizer: false }))}
                           className={`p-2 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${!formData.isMemorizer ? 'bg-slate-100 text-slate-900' : 'bg-slate-900 border border-slate-800 text- slate-400'}`}
                         >
                           {isRtl ? "لا، لست حافظاً" : "No"}
@@ -1582,7 +1583,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                   <DocumentScanner 
                     currentLang={currentLang} 
                     onScanConfirm={(name, size, type) => {
-                      setFormData(prev => ({
+                      setFormData((prev: { uploadedFiles: any; }) => ({
                         ...prev,
                         uploadedFiles: [...prev.uploadedFiles, { name, size, type }]
                       }));
@@ -1621,7 +1622,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                     {/* Rendering uploaded file list */}
                     {formData.uploadedFiles.length > 0 && (
                       <div className="mt-3 space-y-1.5 max-h-48 overflow-y-auto bg-slate-950/30 p-3 rounded-xl border border-slate-850">
-                        {formData.uploadedFiles.map((file, idx) => (
+                        {formData.uploadedFiles.map((file: { name: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined; size: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined; }, idx: React.Key | null | undefined) => (
                           <div key={idx} className="flex justify-between items-center text-[10px] text-slate-300 p-1.5 bg-slate-900 rounded-lg border border-slate-850">
                             <div className="flex items-center gap-1.5 overflow-hidden pr-2">
                               <FileText className="w-3.5 h-3.5 text-rose-450 flex-shrink-0" />
@@ -1711,7 +1712,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                     <div className="col-span-2 sm:col-span-1">
                       <p className="text-slate-500 font-bold">{isRtl ? "بيانات التواصل:" : "Email & WhatsApp:"}</p>
                       <p className="font-semibold text-slate-300 mt-1 font-mono leading-tight">{formData.email}</p>
-                      <p className="font-mono text-slate-400 text-[10px] mt-0.5">{formData.phone}</p>
+                      <p className="font-mono text-slate-400 text-[10px] mt-0.5" dir="ltr">{formData.phone}</p>
                     </div>
 
                     <div className="col-span-2 border-t border-slate-850/60 pt-3 mt-1">
@@ -1734,7 +1735,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                           id="opt-advisor"
                           type="checkbox"
                           checked={formData.extraPremiumAdvisor}
-                          onChange={e => setFormData(p => ({ ...p, extraPremiumAdvisor: e.target.checked }))}
+                          onChange={e => setFormData((p: any) => ({ ...p, extraPremiumAdvisor: e.target.checked }))}
                           className="mt-1 accent-primary cursor-pointer w-4 h-4 shrink-0"
                         />
                         <label htmlFor="opt-advisor" className="text-[10px] sm:text-xs text-slate-350 cursor-pointer text-left select-none block">
@@ -1804,7 +1805,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                     </label>
                     <textarea
                       value={formData.notes}
-                      onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))}
+                      onChange={e => setFormData((p: any) => ({ ...p, notes: e.target.value }))}
                       rows={2}
                       placeholder={isRtl ? "اكتب باختصار أي أبحاث منشورة سابقاً أو كتب لمعادلتها..." : "Write briefly any previous publications, courses, or books for equivalence credits..."}
                       className="w-full bg-slate-950/35 border border-slate-800 p-3 rounded-xl text-xs text-white focus:outline-none focus:border-slate-700"
@@ -1948,7 +1949,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                         </div>
                         <div>
                           <span className="text-slate-500">{isRtl ? "رقم الهاتف والواتساب:" : "Registered Phone:"}</span>
-                          <p className="font-bold text-slate-250 font-mono">{latestSubmittedApp.phone}</p>
+                          <p className="font-bold text-slate-250 font-mono" dir="ltr">{latestSubmittedApp.phone}</p>
                         </div>
                       </div>
 
