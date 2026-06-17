@@ -1257,7 +1257,8 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                           value={formData.phone}
                           onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                           placeholder="+966 50 •••••••"
-                          className={`w-full bg-slate-950/35 border ${errors.phone ? 'border-red-500/50' : 'border-slate-800 focus:border-primary'} pl-10 pr-4 py-3 rounded-xl text-xs text-white focus:outline-none`}
+                          dir="ltr"
+                          className={`w-full bg-slate-950/35 border ${errors.phone ? 'border-red-500/50' : 'border-slate-800 focus:border-primary'} pl-10 pr-4 py-3 rounded-xl text-xs text-white focus:outline-none text-start`}
                         />
                       </div>
                       {errors.phone && <p className="text-[10px] text-red-400 font-bold mt-1.5">{errors.phone}</p>}
@@ -1711,7 +1712,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                     <div className="col-span-2 sm:col-span-1">
                       <p className="text-slate-500 font-bold">{isRtl ? "بيانات التواصل:" : "Email & WhatsApp:"}</p>
                       <p className="font-semibold text-slate-300 mt-1 font-mono leading-tight">{formData.email}</p>
-                      <p className="font-mono text-slate-400 text-[10px] mt-0.5">{formData.phone}</p>
+                      <p className="font-mono text-slate-400 text-[10px] mt-0.5" dir="ltr">{formData.phone}</p>
                     </div>
 
                     <div className="col-span-2 border-t border-slate-850/60 pt-3 mt-1">
@@ -1948,7 +1949,7 @@ export const AdmissionForm: React.FC<AdmissionFormProps> = ({ currentLang }) => 
                         </div>
                         <div>
                           <span className="text-slate-500">{isRtl ? "رقم الهاتف والواتساب:" : "Registered Phone:"}</span>
-                          <p className="font-bold text-slate-250 font-mono">{latestSubmittedApp.phone}</p>
+                          <p className="font-bold text-slate-250 font-mono" dir="ltr">{latestSubmittedApp.phone}</p>
                         </div>
                       </div>
 
